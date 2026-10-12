@@ -322,7 +322,19 @@ public interface CollectionLogPopupEnhancedConfig extends Config
 	)
 	default boolean compactShowOwnership()
 	{
-		return false;
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "compactShimmer",
+		name = "Compact: glass shimmer",
+		description = "Sweep a soft glass highlight across the banner once during its reveal",
+		position = 12,
+		section = appearanceSection
+	)
+	default boolean compactShimmer()
+	{
+		return true;
 	}
 
 	@ConfigItem(

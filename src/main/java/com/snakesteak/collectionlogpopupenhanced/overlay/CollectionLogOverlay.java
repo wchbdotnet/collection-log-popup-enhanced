@@ -610,9 +610,15 @@ public class CollectionLogOverlay extends Overlay
 		float exit = config.previewTier() != PreviewTier.NONE ? 0f
 			: clamp01((elapsed - fadeStart) / (float) FADE_MILLIS);
 		Stat left = resolveStatWithFallback(config.leftPanelStat().toPanelStat(), current);
-		boolean showExtra = left != null && ((config.leftPanelStat() == LeftPanelStat.KILL_COUNT && current.getKillCount() != null)
-			|| config.compactShowOwnership());
-		int height = showExtra ? 98 : 80;
+		boolean showExtra = left != null && config.leftPanelStat() == LeftPanelStat.KILL_COUNT && current.getKillCount() != null;
+		Stat chance = resolveStat(PanelStat.DROP_RATE, current);
+		String rate = chance == null ? "Rate unknown" : (current.getDropProbability() == null ? "Rate range " : "") + String.join(" / ", chance.getValueLines());
+		Double ownership = config.compactShowOwnership() ? current.getCompPercent() : null;
+		String detail = compactDetail(rate, current.getPrice(), current.isHighAlch(), ownership,
+			config.rightPanelStat() == RightPanelStat.VALUE);
+		Font statsFont = FontManager.getRunescapeBoldFont().deriveFont(16f);
+		boolean wrapStats = original.getFontMetrics(statsFont).stringWidth(detail) > 243;
+		int height = 80 + (showExtra ? 18 : 0) + (wrapStats ? 18 : 0);
 		float reveal = smoothReveal((elapsed - 180) / 500f);
 		Graphics2D g = (Graphics2D) original.create();
 		try
@@ -673,22 +679,24 @@ public class CollectionLogOverlay extends Overlay
 			FittedName name = fitName(g, current.getItemName(), title, 243, 16f);
 			g.setFont(name.getFont());
 			compactText(g, name.getText(), 64, 44, opaque(config.compactTextColour()));
-			Stat chance = resolveStat(PanelStat.DROP_RATE, current);
-			Stat value = resolveStat(PanelStat.VALUE, current);
-			String rate = chance == null ? "Rate unknown" : (current.getDropProbability() == null ? "Rate range " : "") + String.join(" / ", chance.getValueLines());
-			String price = String.join(" / ", value.getValueLines());
-			String detail = config.rightPanelStat() == RightPanelStat.VALUE
-				? price + "   ·   " + rate : rate + "   ·   " + price;
 			Font detailFont = small;
-			FittedName fitted = fitName(g, detail, detailFont, 243, 14f);
+			FittedName fitted = fitName(g, wrapStats ? rate : detail, detailFont, 243, 14f);
 			g.setFont(fitted.getFont());
 			compactText(g, fitted.getText(), 64, 65, opaque(config.compactTextColour()));
+			if (wrapStats)
+			{
+				String remaining = compactDetail("", current.getPrice(), current.isHighAlch(), ownership,
+					config.rightPanelStat() == RightPanelStat.VALUE).trim();
+				FittedName rest = fitName(g, remaining, detailFont, 243, 14f);
+				g.setFont(rest.getFont());
+				compactText(g, rest.getText(), 64, 83, opaque(config.compactTextColour()));
+			}
 
 			g.setFont(small);
 			if (showExtra)
 			{
 				String extra = left.getLabel().trim() + " " + String.join(" / ", left.getValueLines());
-				compactText(g, truncate(g, extra, small, 243), 64, 83, opaque(config.colourStatLabel()));
+				compactText(g, truncate(g, extra, small, 243), 64, wrapStats ? 101 : 83, opaque(config.colourStatLabel()));
 			}
 			if (config.showProgressBar())
 			{
@@ -699,9 +707,38 @@ public class CollectionLogOverlay extends Overlay
 				g.setColor(accent);
 				g.fillRect(64, height - 6, total > 0 ? Math.round(243 * clamp01(obtained / (float) total)) : 0, 2);
 			}
+			if (config.compactShimmer() && elapsed >= 650 && elapsed < 1550)
+			{
+				Graphics2D glass = (Graphics2D) g.create();
+				try
+				{
+					glass.clip(new java.awt.geom.RoundRectangle2D.Float(1, 1, 318, height - 2, 4, 4));
+					float t = (elapsed - 650) / 900f;
+					float x = -100 + 520 * t;
+					glass.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity));
+					glass.setPaint(new java.awt.LinearGradientPaint(x, 0, x + 85, 35,
+						new float[] {0f, .45f, .55f, 1f}, new Color[] {
+							new Color(255, 255, 255, 0), new Color(255, 245, 225, 25),
+							new Color(255, 255, 255, 48), new Color(255, 255, 255, 0)}));
+					glass.fill(new java.awt.geom.Rectangle2D.Float(x - height * .42f, 1, 85 + height * .42f, height - 2));
+				}
+				finally { glass.dispose(); }
+			}
 		}
 		finally { g.dispose(); }
 		return new Dimension(panelWidth, Math.round(height * scale));
+	}
+
+	static String compactDetail(String rate, long price, boolean highAlch, Double ownership, boolean valueFirst)
+	{
+		String value = price > 0 ? formatValue(price) + " gp" + (highAlch ? " (HA)" : "") : "";
+		String players = ownership == null ? "" : String.format(java.util.Locale.ROOT, "%.1f%% players", ownership);
+		java.util.List<String> parts = new java.util.ArrayList<>();
+		if (valueFirst && !value.isEmpty()) { parts.add(value); }
+		if (!rate.isEmpty()) { parts.add(rate); }
+		if (!players.isEmpty()) { parts.add(players); }
+		if (!valueFirst && !value.isEmpty()) { parts.add(value); }
+		return String.join("   ", parts);
 	}
 
 	private static float smoothReveal(float t)
