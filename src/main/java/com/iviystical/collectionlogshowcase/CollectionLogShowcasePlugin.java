@@ -112,9 +112,6 @@ public class CollectionLogShowcasePlugin extends Plugin
 	private Client client;
 
 	@Inject
-	private ConfigManager configManager;
-
-	@Inject
 	private ClientThread clientThread;
 
 	@Inject
@@ -172,7 +169,6 @@ public class CollectionLogShowcasePlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		SettingsMigration.migrate(configManager);
 		eventBus.register(itemIdResolver);
 		eventBus.register(killCountTracker);
 		eventBus.register(coxChatCensor);
@@ -700,6 +696,8 @@ public class CollectionLogShowcasePlugin extends Plugin
 	@Provides
 	CollectionLogShowcaseConfig provideConfig(ConfigManager configManager)
 	{
+		// Migrate before RuneLite materializes this plugin's default settings.
+		SettingsMigration.migrate(configManager);
 		return configManager.getConfig(CollectionLogShowcaseConfig.class);
 	}
 }
