@@ -17,6 +17,7 @@ import com.iviystical.collectionlogshowcase.rarity.PreviewTier;
 import com.iviystical.collectionlogshowcase.rarity.RarityResolver;
 import com.iviystical.collectionlogshowcase.rarity.RarityResult;
 import java.util.Comparator;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -666,6 +667,7 @@ public class CollectionLogShowcasePlugin extends Plugin
 		Integer killCount = kill != null ? kill.getKillCount() : null;
 		KillCountKind killCountKind = kill != null ? kill.getKind() : null;
 		String source = kill != null ? kill.getSource() : null;
+		Integer secondaryCount = kill != null ? kill.getSecondaryCount() : null;
 
 		// The drop rate dataset's source names don't always agree with the kill count's source name
 		// (e.g. Barrows' kill count source is "Barrows chest", but its drop rate source is "Chest
@@ -692,11 +694,24 @@ public class CollectionLogShowcasePlugin extends Plugin
 		log.debug("New collection log item '{}' (id {}, resolved via {}) resolved to {} (kill count {} {}, drop probability {}, ambiguous rates {})",
 			itemName, itemId, resolvedVia, result, killCount, killCountKind, dropProbability, ambiguousDropRates);
 
+		// Only settings previews get synthetic counts; real unlocks keep observed game data.
+		if ("known".equals(resolvedVia) && !holdCox)
+		{
+			ThreadLocalRandom random = ThreadLocalRandom.current();
+			int[] examples = {1, 7, 64, 312, 1_234, 12_345, 123_456};
+			killCount = examples[random.nextInt(examples.length)];
+			KillCountKind[] kinds = {KillCountKind.KILLS, KillCountKind.CHESTS,
+				KillCountKind.COMPLETIONS, KillCountKind.RUMOURS};
+			killCountKind = kinds[random.nextInt(kinds.length)];
+			source = null;
+			secondaryCount = null;
+		}
+
 		boolean held = holdCox && config.delayCoxPopupUntilChest() && CoxLootParser.isUnique(itemName);
 
 		collectionLogOverlay.enqueue(itemName, result.getItemId(), result.getTier(), result.getPrice(), result.isHighAlch(),
 			result.getCompPercent(), killCount, killCountKind, source,
-			kill != null ? kill.getSecondaryCount() : null, dropProbability, ambiguousDropRates, held,
+			secondaryCount, dropProbability, ambiguousDropRates, held,
 			!"known".equals(resolvedVia) && config.delayCollectionScreenshot() && config.panelStyle() != PanelStyle.AUDIO_ONLY);
 	}
 

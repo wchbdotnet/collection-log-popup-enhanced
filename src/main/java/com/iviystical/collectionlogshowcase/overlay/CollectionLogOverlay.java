@@ -234,6 +234,18 @@ public class CollectionLogOverlay extends Overlay
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * backgroundOpacity));
 			g.setColor(new Color(24, 24, 23));
 			g.fillRoundRect(0, 0, openingWidth, height, 4, 4);
+			if (config.showGlow())
+			{
+				// Feather the glow inward so it stays inside the overlay's allocated bounds.
+				for (int inset = 0; inset < 8; inset++)
+				{
+					float strength = .28f * (float) Math.pow(1 - inset / 8f, 2);
+					g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity * strength));
+					g.setColor(accent);
+					g.drawRoundRect(inset, inset, openingWidth - 1 - 2 * inset,
+						height - 1 - 2 * inset, 5, 5);
+				}
+			}
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity));
 			g.setColor(new Color(73, 70, 63));
 			g.drawRoundRect(0, 0, openingWidth - 1, height - 1, 4, 4);

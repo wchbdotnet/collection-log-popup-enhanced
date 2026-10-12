@@ -24,7 +24,7 @@ public interface CollectionLogShowcaseConfig extends Config
 	String previewSection = "previewSection";
 
 	@ConfigSection(
-		name = "Style",
+		name = "Popup",
 		description = "Our animated popup or native popup with audio",
 		position = 1
 	)
@@ -141,7 +141,7 @@ public interface CollectionLogShowcaseConfig extends Config
 	@ConfigItem(
 		keyName = "showKillCount",
 		name = "Show kill/activity count",
-		description = "Show the matching kill or activity count from game chat when available. Random previews usually have no matching count.",
+		description = "Show the matching kill or activity count from game chat when available. Previews show simulated counts for layout testing.",
 		position = 0,
 		section = overlaySection
 	)
@@ -184,7 +184,7 @@ public interface CollectionLogShowcaseConfig extends Config
 	@ConfigSection(name = "Audio files", description = "Choose a collection log voice or your own WAV", position = 3)
 	String audioFilesSection = "audioFilesSection";
 
-	@ConfigItem(keyName = "collectionVoice", name = "Collection log voice", description = "Bundled collection log clips credited to their source plugins", position = 0, section = audioFilesSection)
+	@ConfigItem(keyName = "collectionVoice", name = "Voice", description = "Bundled collection log clips credited to their source plugins", position = 0, section = audioFilesSection)
 	default CollectionVoice collectionVoice() { return CollectionVoice.C_ENGINEER; }
 
 	@ConfigItem(keyName = "customSoundFile", name = "Custom WAV filename", description = "For Custom voice: filename inside .runelite/collection-log-showcase/sounds/", position = 1, section = audioFilesSection)
@@ -225,6 +225,9 @@ public interface CollectionLogShowcaseConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(keyName = "showGlow", name = "Show glow", description = "Soft rarity-coloured glow around the drawer border", position = 12, section = appearanceSection)
+	default boolean showGlow() { return true; }
 
 	@ConfigItem(
 		keyName = "compactTextColour",
@@ -297,8 +300,8 @@ public interface CollectionLogShowcaseConfig extends Config
 
 	@ConfigItem(
 		keyName = "panelStyle",
-		name = "Panel style",
-		description = "Showcase replaces the popup; Audio only leaves the native game popup visible",
+		name = "Mode",
+		description = "Showcase: animated replacement. Native: standard game popup. Both use your selected audio settings.",
 		position = 0,
 		section = styleSection
 	)

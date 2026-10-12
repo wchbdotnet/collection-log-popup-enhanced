@@ -13,7 +13,7 @@ This project keeps the original plugin's collection-log detection, rarity calcul
 - Progress bar, scale, background and foreground opacity, text colours, ownership display and shimmer remain configurable.
 - Alt-drag positioning and Preview popup remain available.
 
-Only **Showcase** and **Audio only (native popup)** modes are offered. Audio only leaves the normal game popup visible and plays the selected voice. CoX censoring/delay still takes precedence while loot is hidden.
+Under **Popup / Mode**, choose **Showcase** or **Native**. Native leaves the normal game popup visible and plays the selected voice. CoX censoring/delay still takes precedence while loot is hidden.
 
 ## Audio and source credits
 
@@ -57,4 +57,6 @@ The original BSD-2-Clause license and SnakeSteak copyright remain in [LICENSE](L
 
 B0aty variant 1 has its leading silence trimmed; its source and licence remain listed in the audio credits.
 
-**Show kill/activity count** adds a row when a matching count was observed in game chat (including supported boss kills, clue completions and activity counts). It does not invent counts for random previews or fetch your historical counts. Ownership percentage remains controlled separately by **Show ownership**.
+**Show kill/activity count** adds a row when a matching count was observed in game chat (including supported boss kills, clue completions and activity counts). Settings previews use simulated counts and activity labels to test the layout; these are illustrative, not your account statistics. Real unlocks use observed game data and do not fetch historical counts. Ownership percentage remains controlled separately by **Show ownership**.
+
+**Show glow** (on by default) adds a soft rarity-coloured border glow that follows the drawer animation.
