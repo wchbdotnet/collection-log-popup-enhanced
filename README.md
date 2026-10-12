@@ -8,7 +8,7 @@ This project keeps the original plugin's collection-log detection, rarity calcul
 
 - A compact item compartment that opens into a reward banner, with a moving edge highlight and optional glass shimmer.
 - Bold Pixel text, rendered at its final size. No text-rendering selector.
-- Item name, rarity, drop rate or rate range, percentage of players who own the item, and positive GP values. Zero GP / high-alch entries are hidden.
+- Item name, rarity, drop rate or rate range, percentage of players who own the item, and positive GP values. Zero GP / high-alch entries are hidden. Positive GP values use compact k/m/b units (one decimal for k/m, up to two for b). Ownership is off by default.
 - Content fits the height; longer stat lines wrap. Additional statistic chooses kill count or completion; Primary statistic chooses value or rate ordering.
 - Progress bar, scale, background and foreground opacity, text colours, ownership display and shimmer remain configurable.
 - Alt-drag positioning and Preview popup remain available.
@@ -37,7 +37,7 @@ For your own recording, select **Custom WAV** and place a valid WAV inside `.run
 
 Enable the game's **Collection log — New addition notification** and **New addition popup** settings. The native popup must remain enabled for RuneLite's screenshot timing; Showcase hides only its paint while replacing it.
 
-Select a rarity in **Preview popup** to inspect the banner and hear the chosen voice. Turn preview off and select a tier again to replay the animation and audio. Disable preview afterwards.
+Select a rarity in **Preview popup** to inspect the banner and hear the chosen voice. Preview now runs the full reveal, hold and smooth exit fade, then repeats while selected. Fade out duration (ms) controls the exit for previews and real unlocks alike. Disable preview afterwards.
 
 Showcase conflicts with Collection Log Popup Enhanced so RuneLite does not run both popup replacements together. It has its own Java identity and `collection-log-showcase` settings group. Shared preferences are copied once from the earlier group when no Showcase value exists. Old Colourful/Neutral modes become Showcase; Audio only remains Audio only. The old common sound toggle and volume initialise the unified audio controls; old per-tier differences are intentionally retired. The original settings are not modified.
 

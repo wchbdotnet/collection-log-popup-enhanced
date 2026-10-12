@@ -206,7 +206,7 @@ public interface CollectionLogShowcaseConfig extends Config
 	)
 	default boolean compactShowOwnership()
 	{
-		return true;
+		return false;
 	}
 
 	@ConfigItem(
@@ -244,6 +244,11 @@ public interface CollectionLogShowcaseConfig extends Config
 	{
 		return 6;
 	}
+
+	@Range(min = 200, max = 1500)
+	@ConfigItem(keyName = "fadeOutMillis", name = "Fade out duration (ms)",
+		description = "Length of the smooth exit fade, including previews", position = 3, section = appearanceSection)
+	default int fadeOutMillis() { return 600; }
 
 	@Range(min = 50, max = 200)
 	@ConfigItem(

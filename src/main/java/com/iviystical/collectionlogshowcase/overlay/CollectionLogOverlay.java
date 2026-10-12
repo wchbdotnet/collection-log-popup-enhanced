@@ -3,7 +3,6 @@ package com.iviystical.collectionlogshowcase.overlay;
 import com.iviystical.collectionlogshowcase.CollectionLogShowcaseConfig;
 import com.iviystical.collectionlogshowcase.droprate.DropRateResolver;
 import com.iviystical.collectionlogshowcase.killcount.KillCountKind;
-import com.iviystical.collectionlogshowcase.rarity.PreviewTier;
 import com.iviystical.collectionlogshowcase.rarity.RarityTier;
 import com.iviystical.collectionlogshowcase.sound.SoundManager;
 import java.awt.AlphaComposite;
@@ -45,11 +44,11 @@ public class CollectionLogOverlay extends Overlay
 	private static final int RGB_MASK = 0xFFFFFF;
 	private static final long FOLD_MILLIS = 550;
 	private static final long ICON_POP_MILLIS = 400;
-	private static final long FADE_MILLIS = 400;
 	private final Client client;
 	private final ItemManager itemManager;
 	private final CollectionLogShowcaseConfig config;
 	private final SoundManager soundManager;
+	private final java.util.function.LongSupplier clock;
 	private final Deque<PendingItem> queue = new ArrayDeque<>();
 	private PendingItem current;
 	private long notificationStartMillis;
@@ -63,10 +62,17 @@ public class CollectionLogOverlay extends Overlay
 	@Inject
 	public CollectionLogOverlay(Client client, ItemManager itemManager, CollectionLogShowcaseConfig config, SoundManager soundManager)
 	{
+		this(client, itemManager, config, soundManager, System::currentTimeMillis);
+	}
+
+	CollectionLogOverlay(Client client, ItemManager itemManager, CollectionLogShowcaseConfig config, SoundManager soundManager,
+		java.util.function.LongSupplier clock)
+	{
 		this.client = client;
 		this.itemManager = itemManager;
 		this.config = config;
 		this.soundManager = soundManager;
+		this.clock = clock;
 		setPosition(OverlayPosition.TOP_CENTER);
 		setLayer(OverlayLayer.ABOVE_WIDGETS);
 		setPriority(PRIORITY_HIGHEST);
@@ -146,7 +152,7 @@ public class CollectionLogOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		long now = System.currentTimeMillis();
+		long now = clock.getAsLong();
 		// Still advanced in Audio only: the queue is what plays and spaces out the sounds.
 		advance(now);
 		if (config.panelStyle() == PanelStyle.AUDIO_ONLY)
@@ -188,8 +194,8 @@ public class CollectionLogOverlay extends Overlay
 	{
 		float scale = config.overlayScalePercent() / 100f;
 		long fadeStart = FOLD_MILLIS + ICON_POP_MILLIS + config.overlayDisplaySeconds() * 1000L;
-		float exit = config.previewTier() != PreviewTier.NONE ? 0f
-			: clamp01((elapsed - fadeStart) / (float) FADE_MILLIS);
+		float exitT = clamp01((elapsed - fadeStart) / (float) Math.max(200, config.fadeOutMillis()));
+		float exit = exitT * exitT * (3 - 2 * exitT);
 		Stat left = resolveStatWithFallback(config.leftPanelStat().toPanelStat(), current);
 		boolean showExtra = left != null && config.leftPanelStat() == LeftPanelStat.KILL_COUNT && current.getKillCount() != null;
 		Stat chance = resolveStat(PanelStat.DROP_RATE, current);
@@ -205,7 +211,7 @@ public class CollectionLogOverlay extends Overlay
 		try
 		{
 			g.scale(scale, scale);
-			g.translate(Math.round(24 * exit * exit), 0);
+			g.translate(0, -Math.round(6 * exit));
 			int openingWidth = 58 + Math.round(262 * reveal);
 			g.clipRect(0, 0, openingWidth, height);
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -388,13 +394,7 @@ public class CollectionLogOverlay extends Overlay
 			}
 		}
 
-		if (config.previewTier() != PreviewTier.NONE)
-		{
-			// Held indefinitely - see the fadeAlpha branch in #render.
-			return;
-		}
-
-		long totalMillis = FOLD_MILLIS + ICON_POP_MILLIS + config.overlayDisplaySeconds() * 1000L + FADE_MILLIS;
+		long totalMillis = FOLD_MILLIS + ICON_POP_MILLIS + config.overlayDisplaySeconds() * 1000L + Math.max(200, config.fadeOutMillis());
 		if (now - notificationStartMillis >= totalMillis)
 		{
 			current = null;
@@ -581,28 +581,22 @@ public class CollectionLogOverlay extends Overlay
 		return (denominator / 1000) + "k";
 	}
 
-	// Long gp values (e.g. "2,147,483,647 gp") don't fit the panel either, so truncate to one decimal
-	// of K/M/B once the value hits 100k+ - below that the plain number is short enough to fit as-is.
-	private static String formatValue(long value)
+	// One decimal for thousands/millions, two for billions; omit insignificant zeroes.
+	static String formatValue(long value)
 	{
-		long absValue = Math.abs(value);
-		String sign = value < 0 ? "-" : "";
-		if (absValue < 100_000)
+		BigDecimal amount = BigDecimal.valueOf(value).abs();
+		if (amount.compareTo(BigDecimal.valueOf(1000)) < 0) { return Long.toString(value); }
+		String[] suffixes = {"k", "m", "b"};
+		long[] units = {1_000L, 1_000_000L, 1_000_000_000L};
+		for (int i = 0; i < units.length; i++)
 		{
-			return sign + absValue;
+			BigDecimal rounded = amount.divide(BigDecimal.valueOf(units[i]), i == 2 ? 2 : 1, RoundingMode.HALF_UP);
+			if (i == 2 || rounded.compareTo(BigDecimal.valueOf(1000)) < 0)
+			{
+				return (value < 0 ? "-" : "") + rounded.stripTrailingZeros().toPlainString() + suffixes[i];
+			}
 		}
-		if (absValue < 1_000_000_000L)
-		{
-			return absValue < 1_000_000
-				? sign + oneDecimal(absValue, 1_000) + "k"
-				: sign + oneDecimal(absValue, 1_000_000) + "m";
-		}
-		return sign + oneDecimal(absValue, 1_000_000_000L) + "b";
-	}
-
-	private static String oneDecimal(long value, long unit)
-	{
-		return String.format("%.1f", value / (double) unit);
+		throw new IllegalStateException("No GP unit selected");
 	}
 
 	/**
