@@ -55,7 +55,7 @@ public class CollectionLogOverlayIconTest
 		when(config.overlayDisplaySeconds()).thenReturn(5);
 		when(config.panelStyle()).thenReturn(PanelStyle.COMPACT);
 		when(config.previewTier()).thenReturn(PreviewTier.NONE);
-		when(config.leftPanelStat()).thenReturn(LeftPanelStat.KILL_COUNT);
+		when(config.showKillCount()).thenReturn(true);
 		when(config.rightPanelStat()).thenReturn(RightPanelStat.DROP_RATE);
 		when(config.showProgressBar()).thenReturn(true);
 		when(config.bulkUnlockSfx()).thenReturn(false);

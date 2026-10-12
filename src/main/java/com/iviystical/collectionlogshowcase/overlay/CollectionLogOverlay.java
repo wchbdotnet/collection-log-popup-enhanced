@@ -204,8 +204,8 @@ public class CollectionLogOverlay extends Overlay
 		float scale = config.overlayScalePercent() / 100f;
 		long fadeStart = FOLD_MILLIS + ICON_POP_MILLIS + config.overlayDisplaySeconds() * 1000L;
 		float exitT = clamp01((elapsed - fadeStart) / (float) Math.max(200, config.fadeOutMillis()));
-		Stat left = resolveStatWithFallback(config.leftPanelStat().toPanelStat(), current);
-		boolean showExtra = left != null && config.leftPanelStat() == LeftPanelStat.KILL_COUNT && current.getKillCount() != null;
+		Stat left = config.showKillCount() ? resolveStat(PanelStat.KILL_COUNT, current) : null;
+		boolean showExtra = left != null;
 		Stat chance = resolveStat(PanelStat.DROP_RATE, current);
 		String rate = chance == null ? "Rate unknown" : (current.getDropProbability() == null ? "Rate range " : "") + String.join(" / ", chance.getValueLines());
 		Double ownership = config.compactShowOwnership() ? current.getCompPercent() : null;
@@ -445,45 +445,6 @@ public class CollectionLogOverlay extends Overlay
 			truncated.setLength(truncated.length() - 1);
 		}
 		return truncated + ellipsis;
-	}
-
-	/**
-	 * @return the primary stat, or the first stat down its fallback chain that's applicable to
-	 *         {@code item} (e.g. Kill count picked but there's no correlated kill, so Completion is
-	 *         tried) - or null if none of them are, in which case that side of the panel is simply
-	 *         left blank.
-	 */
-	private Stat resolveStatWithFallback(PanelStat primary, PendingItem item)
-	{
-		PanelStat candidate = primary;
-		while (candidate != PanelStat.NONE)
-		{
-			Stat stat = resolveStat(candidate, item);
-			if (stat != null)
-			{
-				return stat;
-			}
-			candidate = fallbackFor(candidate);
-		}
-		return null;
-	}
-
-	/**
-	 * Kill count and Drop rate are the stats that can be unavailable for an item (no correlated
-	 * kill, or no known/unambiguous drop rate); each falls back to a stat that's always available.
-	 * Everything else has no fallback.
-	 */
-	private static PanelStat fallbackFor(PanelStat stat)
-	{
-		switch (stat)
-		{
-			case KILL_COUNT:
-				return PanelStat.RARITY;
-			case DROP_RATE:
-				return PanelStat.VALUE;
-			default:
-				return PanelStat.NONE;
-		}
 	}
 
 	/**

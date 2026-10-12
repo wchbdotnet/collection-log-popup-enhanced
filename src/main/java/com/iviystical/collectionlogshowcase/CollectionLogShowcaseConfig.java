@@ -1,7 +1,6 @@
 package com.iviystical.collectionlogshowcase;
 
 import com.iviystical.collectionlogshowcase.cox.CoxChatCensorMode;
-import com.iviystical.collectionlogshowcase.overlay.LeftPanelStat;
 import com.iviystical.collectionlogshowcase.overlay.PanelStyle;
 import com.iviystical.collectionlogshowcase.overlay.RightPanelStat;
 import com.iviystical.collectionlogshowcase.sound.CollectionVoice;
@@ -140,15 +139,15 @@ public interface CollectionLogShowcaseConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "leftPanelStat",
-		name = "Additional statistic",
-		description = "Kill count adds a row when available; Completion uses the ownership display toggle",
+		keyName = "showKillCount",
+		name = "Show kill/activity count",
+		description = "Show the matching kill or activity count from game chat when available. Random previews usually have no matching count.",
 		position = 0,
 		section = overlaySection
 	)
-	default LeftPanelStat leftPanelStat()
+	default boolean showKillCount()
 	{
-		return LeftPanelStat.KILL_COUNT;
+		return true;
 	}
 
 	@ConfigItem(

@@ -56,3 +56,5 @@ Manual verification is still needed for real unlocks, audio output, screenshots,
 The original BSD-2-Clause license and SnakeSteak copyright remain in [LICENSE](LICENSE). The original project credits C Engineer for collection-log popup tie-ins, Trailblazer audio for playback references, and CoX Special Loot Hider (Karambtwo, Rikten X, Fraac) for chat censoring and delayed screenshots. Our fork retains that attribution. The original Colourful/Neutral art and five sound files have been removed from the distributed resources.
 
 B0aty variant 1 has its leading silence trimmed; its source and licence remain listed in the audio credits.
+
+**Show kill/activity count** adds a row when a matching count was observed in game chat (including supported boss kills, clue completions and activity counts). It does not invent counts for random previews or fetch your historical counts. Ownership percentage remains controlled separately by **Show ownership**.

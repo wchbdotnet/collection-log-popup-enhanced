@@ -9,7 +9,7 @@ final class SettingsMigration
     static final String LEGACY = "collection-log-popup-enhanced";
     private static final String[] KEYS = {
         "previewTier", "rarityBasis", "valueUncommonThreshold", "valueRareThreshold", "valueVeryRareThreshold",
-        "leftPanelStat", "rightPanelStat", "bulkUnlockSfx", "showProgressBar", "compactShowOwnership",
+        "rightPanelStat", "bulkUnlockSfx", "showProgressBar", "compactShowOwnership",
         "compactShimmer", "compactTextColour", "overlayDisplaySeconds", "overlayScalePercent",
         "backgroundOpacity", "foregroundOpacity", "colourCaption",
         "delayCoxPopupUntilChest", "coxChatCensor"
@@ -17,6 +17,13 @@ final class SettingsMigration
 
     static void migrate(ConfigManager manager)
     {
+        // Also applies to existing Showcase profiles, which already completed the upstream migration.
+        if (manager.getConfiguration(GROUP, "showKillCount") == null)
+        {
+            String previous = manager.getConfiguration(GROUP, "leftPanelStat");
+            if (previous == null) { previous = manager.getConfiguration(LEGACY, "leftPanelStat"); }
+            if (previous != null) { manager.setConfiguration(GROUP, "showKillCount", "KILL_COUNT".equals(previous)); }
+        }
         if (manager.getConfiguration(GROUP, "settingsMigrated") != null) { return; }
         for (String key : KEYS) { copy(manager, key, key); }
         copy(manager, "soundEnabledCommon", "soundEnabled");
