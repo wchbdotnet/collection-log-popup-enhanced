@@ -465,6 +465,14 @@ public class CollectionLogOverlay extends Overlay
 		{
 			applyColours(colours);
 		}
+		if (config.panelStyle() == PanelStyle.COMPACT)
+		{
+			panelWidth = Math.round(320 * scalePercent / 100f);
+		}
+		else
+		{
+			panelWidth = Math.round(BASE_PANEL_WIDTH * scalePercent / 100f);
+		}
 
 		// Compared by value, not identity: an alt-click that doesn't move still saves our own point.
 		Point placed = getPreferredLocation();
@@ -490,6 +498,10 @@ public class CollectionLogOverlay extends Overlay
 		}
 
 		long elapsed = now - notificationStartMillis;
+		if (config.panelStyle() == PanelStyle.COMPACT)
+		{
+			return renderCompact(graphics, elapsed);
+		}
 		long iconPopStart = FOLD_MILLIS;
 
 		float foldRaw = clamp01(elapsed / (float) FOLD_MILLIS);
@@ -589,6 +601,87 @@ public class CollectionLogOverlay extends Overlay
 
 		// Height includes the icon frame's bottom half, which now straddles the panel's bottom edge.
 		return new Dimension(panelWidth, panelHeight + iconCanvasSize / 2);
+	}
+
+	private Dimension renderCompact(Graphics2D original, long elapsed)
+	{
+		float scale = config.overlayScalePercent() / 100f;
+		long fadeStart = FOLD_MILLIS + ICON_POP_MILLIS + config.overlayDisplaySeconds() * 1000L;
+		float alpha = config.previewTier() != PreviewTier.NONE || elapsed < fadeStart ? 1f
+			: 1f - clamp01((elapsed - fadeStart) / (float) FADE_MILLIS);
+		Graphics2D g = (Graphics2D) original.create();
+		try
+		{
+			g.scale(scale, scale);
+			g.translate(0, -6 * (1f - clamp01(elapsed / 180f)));
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+				config.textRenderMode() == TextRenderMode.CRISP ? RenderingHints.VALUE_TEXT_ANTIALIAS_OFF : RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			Color accent = tierColor(current.getTier());
+			g.setComposite(AlphaComposite.SrcOver.derive(alpha * backgroundOpacity));
+			g.setColor(new Color(20, 23, 27));
+			g.fillRoundRect(0, 0, 320, 94, 12, 12);
+			g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity));
+			g.setColor(new Color(63, 68, 75));
+			g.drawRoundRect(0, 0, 319, 93, 12, 12);
+			g.setColor(accent);
+			g.fillRoundRect(0, 16, 3, 60, 3, 3);
+			g.setColor(new Color(34, 38, 44));
+			g.fillRoundRect(12, 23, 44, 44, 8, 8);
+			BufferedImage sprite = current.getItemId() >= 0 ? itemManager.getImage(current.getItemId()) : null;
+			if (sprite != null)
+			{
+				g.drawImage(sprite, 34 - sprite.getWidth() / 2, 45 - sprite.getHeight() / 2, null);
+			}
+			Font small = FontManager.getRunescapeFont().deriveFont(12f);
+			Font title = FontManager.getRunescapeBoldFont().deriveFont(18f);
+			g.setFont(small);
+			g.setColor(opaque(config.colourCaption()));
+			g.drawString("Collection log", 68, 18);
+			String tier = current.getTier().getLabel();
+			g.setColor(accent);
+			g.drawString(tier, 307 - g.getFontMetrics().stringWidth(tier), 18);
+			FittedName name = fitName(g, current.getItemName(), title, 239, 12f);
+			g.setFont(name.getFont());
+			g.setColor(accent);
+			g.drawString(name.getText(), 68, 39);
+			drawCompactStat(g, resolveStatWithFallback(config.leftPanelStat().toPanelStat(), current), 68, small);
+			drawCompactStat(g, resolveStatWithFallback(config.rightPanelStat().toPanelStat(), current), 192, small);
+			if (config.showProgressBar())
+			{
+				int total = client.getVarpValue(VarPlayerID.COLLECTION_COUNT_MAX);
+				int obtained = client.getVarpValue(VarPlayerID.COLLECTION_COUNT);
+				g.setColor(new Color(47, 52, 59));
+				g.fillRect(12, 85, 296, 2);
+				g.setColor(accent);
+				g.fillRect(12, 85, total > 0 ? Math.round(296 * clamp01(obtained / (float) total)) : 0, 2);
+			}
+		}
+		finally
+		{
+			g.dispose();
+		}
+		return new Dimension(panelWidth, Math.round(94 * scale));
+	}
+
+	private void drawCompactStat(Graphics2D g, Stat stat, int x, Font font)
+	{
+		if (stat == null)
+		{
+			return;
+		}
+		g.setFont(font);
+		g.setColor(opaque(config.colourStatLabel()));
+		g.drawString(truncate(g, stat.getLabel().trim(), font, 115), x, 56);
+		g.setColor(stat.getValueColor());
+		int y = 70;
+		for (String line : stat.getValueLines())
+		{
+			FittedName value = fitName(g, line, font, 115, 9f);
+			g.setFont(value.getFont());
+			g.drawString(value.getText(), x, y);
+			y += 11;
+		}
 	}
 
 	private void drawItemSprite(Graphics2D graphics, BufferedImage sprite)

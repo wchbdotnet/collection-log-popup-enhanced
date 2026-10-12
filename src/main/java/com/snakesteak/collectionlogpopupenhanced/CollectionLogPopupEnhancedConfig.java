@@ -380,13 +380,13 @@ public interface CollectionLogPopupEnhancedConfig extends Config
 	@ConfigItem(
 		keyName = "panelStyle",
 		name = "Panel style",
-		description = "Colourful tints the panel with the tier colour, neutral keeps the plain OSRS-style art, audio only keeps the game's own popup and just plays the sound",
+		description = "Compact uses a small dark card; colourful and neutral use the original panel art; audio only keeps the game popup",
 		position = 0,
 		section = styleSection
 	)
 	default PanelStyle panelStyle()
 	{
-		return PanelStyle.COLORFUL;
+		return PanelStyle.COMPACT;
 	}
 
 	@ConfigItem(

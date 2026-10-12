@@ -6,6 +6,7 @@ package com.snakesteak.collectionlogpopupenhanced.overlay;
  */
 public enum PanelStyle
 {
+	COMPACT("Compact", "Colorful"),
 	COLORFUL("Colourful", "Colorful"),
 	NEUTRAL("Neutral", "Neutral"),
 	// Never drawn - the directory only keeps the art loading path uniform.
