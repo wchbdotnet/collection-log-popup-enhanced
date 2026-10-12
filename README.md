@@ -1,62 +1,46 @@
 # Collection Log Showcase
 
-**A standalone fork of [Collection Log Popup Enhanced](https://github.com/TimHeessels/collection-log-popup-enhanced) by SnakeSteak, developed by IVIystical.**
+A compact, animated collection log popup for RuneLite, by **IVIystical**.
 
-This project keeps the original plugin's collection-log detection, rarity calculation, local datasets, kill-count tracking, unlock queue, bulk sound handling, native-popup screenshot integration and Chambers of Xeric censor/delay features. It replaces the original visual skins and tier-specific audio system with an animated compact banner and a selectable collection-log voice.
+**A standalone fork of [Collection Log Popup Enhanced](https://runelite.net/plugin-hub/show/collection-log-popup-enhanced) by SnakeSteak.** Huge thanks to SnakeSteak for the original plugin and the functionality this fork builds on. [View the original project](https://github.com/TimHeessels/collection-log-popup-enhanced).
 
-## Our popup
+![Collection Log Showcase animated popup](docs/showcase.gif)
 
-- A compact item compartment that opens into a reward banner, with a moving edge highlight and optional glass shimmer.
-- Bold Pixel text, rendered at its final size. No text-rendering selector.
-- Item name, rarity, drop rate or rate range, percentage of players who own the item, and positive GP values. Zero GP / high-alch entries are hidden. Positive GP values use compact k/m/b units (one decimal for k/m, up to two for b). Ownership is off by default.
-- Content fits the height; longer stat lines wrap. Additional statistic chooses kill count or completion; Primary statistic chooses value or rate ordering.
-- Progress bar, scale, background and foreground opacity, text colours, ownership display and shimmer remain configurable.
-- Alt-drag positioning and Preview popup remain available.
+## What it does
 
-Under **Popup / Mode**, choose **Showcase** or **Native**. Native leaves the normal game popup visible and plays the selected voice. CoX censoring/delay still takes precedence while loot is hidden.
+Celebrate new collection log slots with a sliding drawer reveal, clear pixel text and a matching collapse animation. The popup shows the item, rarity, available drop rate or rate range, and its value in compact GP units. Zero-value prices stay hidden.
 
-## Audio and source credits
+- Optional ownership percentage and matching kill/activity counts.
+- Adjustable size, duration, opacity, text colours and progress bar, with optional shimmer and rarity glow.
+- Rarity based on item value, player ownership, or both.
+- Selectable creator voices, one volume control and optional single-sound handling for bulk unlocks.
+- Chambers of Xeric loot censoring and delayed popups, carried over from the original plugin.
 
-**We have also pulled the bundled audio files from various other RuneLite plugins. These recordings are not original recordings made for this project.**
+## Getting started
 
-| Voice | Source plugin and maintainer | Clip |
-| --- | --- | --- |
-| C Engineer (default) | [C Engineer: Completed — m0bilebtw](https://github.com/m0bilebtw/c-engineer-completed) | `ColLogSlotCompleted_r1.wav` |
-| B0aty — variant 1 | [Boaty Hype Man — Devdeve](https://github.com/Devdeve/boatyHypeMan-plugin) | `collog1.wav` |
-| B0aty — variant 2 | [Boaty Hype Man — Devdeve](https://github.com/Devdeve/boatyHypeMan-plugin) | `collog2.wav` |
-| Tedious | [Tedious Collection Log — evaan](https://github.com/evaan/tedious-collection-log) | `the_collection_log.wav` |
-| Odablock | [Odablock — DapperMickie](https://github.com/DapperMickie/odablock-sounds) | `collectionlog/ColLogSlotCompleted_r1.wav` |
+1. Enable **Collection log - New addition notification** and **New addition popup** in the game's settings. Showcase replaces the visible popup while keeping screenshot support.
+2. Under **Popup / Mode**, choose **Showcase**, or **Native** to keep the standard game popup with your selected audio.
+3. Choose a tier under **Preview** to try it. Each selection plays once; enable **Loop** to repeat. Preview counts are simulated for layout testing.
 
-The exact source revisions are recorded in [audio-sources.txt](src/main/resources/licenses/audio-sources.txt). The source repositories' BSD-2-Clause license notices are included in [licenses](src/main/resources/licenses) and bundled in the plugin JAR. Voice names identify the recordings and do not imply endorsement of this fork.
+Drop rate is the default primary statistic. Ownership, kill/activity counts and glow are off by default. Counts appear on real unlocks only when matching game data is available; drop rates may be unknown or show a range.
 
-Audio has one **Play collection log audio** toggle and one **Volume** for every tier and pets. **Bulk unlock SFX** preserves the original behaviour: one sound for an unlock batch when enabled. Select a voice in the separate **Audio files** section. All bundled clips are local WAV resources; the plugin does not download them at runtime. None of Collection Log Popup Enhanced's original five sound effects remain bundled.
+**Delay collection screenshot** waits 1.5 seconds after each popup starts so the reveal can finish. It requires RuneLite's Screenshot plugin with collection log captures enabled. Chat-only screenshots keep their normal timing.
 
-For your own recording, select **Custom WAV** and place a valid WAV inside `.runelite/collection-log-showcase/sounds/`. Set **Custom WAV filename** to its filename, for example `custom.wav`. Selecting Custom and triggering a preview creates the folder if necessary. An absent or invalid custom file does not silently substitute another voice.
+CoX delay and chat censoring are off by default. Enable them to hide loot until the reward chest, storage or bank is opened. Avoid enabling overlapping features in CoX Special Loot Hider. Showcase and the original popup plugin cannot run together.
 
-## Setup and previews
+## Audio & credits
 
-Enable the game's **Collection log — New addition notification** and **New addition popup** settings. The native popup must remain enabled for RuneLite's screenshot timing; Showcase hides only its paint while replacing it.
+**The bundled audio files were pulled from other RuneLite plugins, not recorded for this project:**
 
-Select a rarity in **Preview popup** to inspect the banner and hear the chosen voice. Preview plays the reveal, hold and reverse drawer close once when the selection changes. Enable **Loop** to repeat it (off by default). **Drawer close duration (ms)** controls the exit for previews and real unlocks. **Delay collection screenshot** waits 1.5 seconds from each real popup opening, including queued and released CoX unlocks, and honours Screenshot plugin settings. Native chat-only screenshots retain their normal timing.
+- **C Engineer** (default): [C Engineer: Completed by m0bilebtw](https://github.com/m0bilebtw/c-engineer-completed).
+- **B0aty**, two variants: [Boaty Hype Man by Devdeve](https://github.com/Devdeve/boatyHypeMan-plugin). Variant 1's leading silence has been trimmed.
+- **Tedious**: [Tedious Collection Log by evaan](https://github.com/evaan/tedious-collection-log).
+- **Odablock**: [Odablock by DapperMickie](https://github.com/DapperMickie/odablock-sounds).
 
-Showcase conflicts with Collection Log Popup Enhanced so RuneLite does not run both popup replacements together. It has its own Java identity and `collection-log-showcase` settings group. Shared preferences are copied once from the earlier group when no Showcase value exists. Old Colourful/Neutral modes become Showcase; Audio only remains Audio only. The old common sound toggle and volume initialise the unified audio controls; old per-tier differences are intentionally retired. The original settings are not modified.
+Choose a **Voice** under **Audio files**. For **Custom WAV**, place your recording in `.runelite/collection-log-showcase/sounds/` and enter its filename. The original plugin's sound effects are not bundled.
 
-## Chambers of Xeric
+SnakeSteak's original detection, rarity and drop-rate data handling, count tracking, unlock queue, bulk audio and CoX functionality form the foundation of this fork. We also retain its credits to C Engineer, Trailblazer audio and CoX Special Loot Hider (Karambtwo, Rikten X and Fraac).
 
-The upstream CoX code and defaults are retained: **Delay CoX popups until chest** defaults off, and **Chatbox censor** defaults Off. Enable them if you want loot hidden until the reward chest, storage or bank is opened. Delayed collection-log screenshots remain tied to release of the popup. Avoid combining the censor with CoX Special Loot Hider.
+See [LICENSE](LICENSE), [third-party notices](THIRD_PARTY_NOTICES.md) and [audio sources and licences](src/main/resources/licenses) for attribution and exact source revisions. No creator endorsement is implied.
 
-## Development and validation
-
-Java 11-compatible source. Author metadata: **IVIystical**. Follow current [RuneLite Plugin Hub guidelines](https://github.com/runelite/plugin-hub). Run `gradlew test` for automated checks and `gradlew run` for the development client. For Jagex accounts, use RuneLite's [development-client login guide](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
-
-Manual verification is still needed for real unlocks, audio output, screenshots, bulk unlocks and CoX chest release. Development previews and automated tests do not establish those behaviours in-game. This fork has not been submitted to the Plugin Hub.
-
-## Upstream attribution
-
-The original BSD-2-Clause license and SnakeSteak copyright remain in [LICENSE](LICENSE). The original project credits C Engineer for collection-log popup tie-ins, Trailblazer audio for playback references, and CoX Special Loot Hider (Karambtwo, Rikten X, Fraac) for chat censoring and delayed screenshots. Our fork retains that attribution. The original Colourful/Neutral art and five sound files have been removed from the distributed resources.
-
-B0aty variant 1 has its leading silence trimmed; its source and licence remain listed in the audio credits.
-
-**Show kill/activity count** (off by default) adds a row when a matching count was observed in game chat (including supported boss kills, clue completions and activity counts). Settings previews use simulated counts and activity labels to test the layout; these are illustrative, not your account statistics. Real unlocks use observed game data and do not fetch historical counts. Ownership percentage remains controlled separately by **Show ownership**.
-
-**Show glow** (off by default) adds a soft rarity-coloured border glow that follows the drawer animation.
+*In development; not yet submitted to the Plugin Hub.*
