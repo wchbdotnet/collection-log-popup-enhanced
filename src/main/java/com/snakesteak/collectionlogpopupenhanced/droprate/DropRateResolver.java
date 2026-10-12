@@ -157,6 +157,7 @@ public class DropRateResolver
 	 */
 	private static Double rateFor(Map<String, Double> itemRates, String itemName)
 	{
+		itemName = CollectionLogSlotNames.withoutMembershipSuffix(itemName);
 		Double exact = itemRates.get(itemName);
 		if (exact != null)
 		{

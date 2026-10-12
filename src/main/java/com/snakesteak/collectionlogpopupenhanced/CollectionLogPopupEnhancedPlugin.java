@@ -647,6 +647,7 @@ public class CollectionLogPopupEnhancedPlugin extends Plugin
 
 	private void handleResolvedItem(int itemId, String itemName, String resolvedVia, boolean holdCox)
 	{
+		itemName = CollectionLogSlotNames.withoutMembershipSuffix(itemName);
 		RarityResult result = rarityResolver.resolve(itemId, itemName);
 
 		// Read now, right before display, rather than when the chat message first arrived -

@@ -20,6 +20,15 @@ public final class CollectionLogSlotNames
 	{
 	}
 
+	/** The client appends this marker to members items when previewing on a free world. */
+	public static String withoutMembershipSuffix(String name)
+	{
+		String suffix = " (Members)";
+		int cut = name.length() - suffix.length();
+		return cut > 0 && name.regionMatches(true, cut, suffix, 0, suffix.length())
+			? name.substring(0, cut) : name;
+	}
+
 	/**
 	 * @return the slot name for a dataset item name carrying the wiki's " (pet)" disambiguator, or
 	 *         {@code null} if it carries none. Gull is the only such entry - the log's slot, and so
