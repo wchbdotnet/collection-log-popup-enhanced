@@ -85,6 +85,12 @@ public interface CollectionLogShowcaseConfig extends Config
 		return PreviewTier.NONE;
 	}
 
+	@ConfigItem(keyName = "previewLoop", name = "Loop", description = "Repeat the selected preview after it closes", position = 1, section = previewSection)
+	default boolean previewLoop() { return false; }
+
+	@ConfigItem(keyName = "delayCollectionScreenshot", name = "Delay collection screenshot", description = "Wait 1.5 seconds after the drawer opens before taking popup-based collection screenshots. Requires Screenshot plugin; chat-only screenshots use native timing.", position = 10, section = appearanceSection)
+	default boolean delayCollectionScreenshot() { return true; }
+
 	@ConfigItem(
 		keyName = "rarityBasis",
 		name = "Rarity based on",
@@ -246,8 +252,8 @@ public interface CollectionLogShowcaseConfig extends Config
 	}
 
 	@Range(min = 200, max = 1500)
-	@ConfigItem(keyName = "fadeOutMillis", name = "Fade out duration (ms)",
-		description = "Length of the smooth exit fade, including previews", position = 3, section = appearanceSection)
+	@ConfigItem(keyName = "fadeOutMillis", name = "Drawer close duration (ms)",
+		description = "Length of the reverse drawer close animation, including previews", position = 3, section = appearanceSection)
 	default int fadeOutMillis() { return 600; }
 
 	@Range(min = 50, max = 200)
@@ -312,18 +318,6 @@ public interface CollectionLogShowcaseConfig extends Config
 	default Color colourCaption()
 	{
 		return new Color(0xFF981F);
-	}
-
-	@ConfigItem(
-		keyName = "colourStatLabel",
-		name = "Statistic labels",
-		description = "Colour of the additional statistic text",
-		position = 1,
-		section = textColoursSection
-	)
-	default Color colourStatLabel()
-	{
-		return new Color(0xDCDCD6);
 	}
 
 	@ConfigItem(

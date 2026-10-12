@@ -17,7 +17,7 @@ import static org.mockito.Mockito.*;
 public class PreviewFadeTest
 {
     @Test
-    public void previewFadesAndExpiresUsingConfiguredDuration()
+    public void previewCollapsesAndExpiresUsingConfiguredDuration()
     {
         for (PreviewTier preview : new PreviewTier[] {PreviewTier.NONE, PreviewTier.COMMON})
         {
@@ -37,13 +37,37 @@ public class PreviewFadeTest
             clock.set(950);
             assertEquals(255, render(overlay).getRGB(10, 10) >>> 24);
             clock.set(1250);
-            int alpha = render(overlay).getRGB(10, 10) >>> 24;
-            assertTrue("mid-fade opacity", alpha > 100 && alpha < 155);
+            BufferedImage closing = render(overlay);
+            assertEquals("item compartment stays opaque", 255, closing.getRGB(10, 10) >>> 24);
+            assertEquals("drawer right edge retracts", 0, closing.getRGB(319, 10) >>> 24);
             assertFalse(overlay.isIdle());
             clock.set(1550);
             assertEquals(0, render(overlay).getRGB(10, 10) >>> 24);
             assertTrue(overlay.isIdle());
         }
+    }
+
+    @Test
+    public void screenshotWaitsForRevealAndDoesNotRepeat()
+    {
+        Client client = mock(Client.class);
+        when(client.getViewportWidth()).thenReturn(800);
+        CollectionLogShowcaseConfig config = new CollectionLogShowcaseConfig() {};
+        AtomicLong clock = new AtomicLong();
+        CollectionLogOverlay overlay = new CollectionLogOverlay(client, mock(ItemManager.class), config, mock(SoundManager.class), clock::get);
+        java.util.function.Consumer<String> captured = mock(java.util.function.Consumer.class);
+        overlay.setReleasedFullyOpenListener(captured);
+        overlay.enqueue("Mask of Ranul", -1, RarityTier.UNCOMMON, 8511, false, null, null, null, null, null, .001, List.of(), false, true);
+        render(overlay);
+        clock.set(1499);
+        render(overlay);
+        verifyNoInteractions(captured);
+        clock.set(1500);
+        render(overlay);
+        clock.set(1600);
+        render(overlay);
+        verify(captured, times(1)).accept("Mask of Ranul");
+        assertFalse(config.previewLoop());
     }
 
     private BufferedImage render(CollectionLogOverlay overlay)

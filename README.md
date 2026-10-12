@@ -37,7 +37,7 @@ For your own recording, select **Custom WAV** and place a valid WAV inside `.run
 
 Enable the game's **Collection log — New addition notification** and **New addition popup** settings. The native popup must remain enabled for RuneLite's screenshot timing; Showcase hides only its paint while replacing it.
 
-Select a rarity in **Preview popup** to inspect the banner and hear the chosen voice. Preview now runs the full reveal, hold and smooth exit fade, then repeats while selected. Fade out duration (ms) controls the exit for previews and real unlocks alike. Disable preview afterwards.
+Select a rarity in **Preview popup** to inspect the banner and hear the chosen voice. Preview plays the reveal, hold and reverse drawer close once when the selection changes. Enable **Loop** to repeat it (off by default). **Drawer close duration (ms)** controls the exit for previews and real unlocks. **Delay collection screenshot** waits 1.5 seconds from each real popup opening, including queued and released CoX unlocks, and honours Screenshot plugin settings. Native chat-only screenshots retain their normal timing.
 
 Showcase conflicts with Collection Log Popup Enhanced so RuneLite does not run both popup replacements together. It has its own Java identity and `collection-log-showcase` settings group. Shared preferences are copied once from the earlier group when no Showcase value exists. Old Colourful/Neutral modes become Showcase; Audio only remains Audio only. The old common sound toggle and volume initialise the unified audio controls; old per-tier differences are intentionally retired. The original settings are not modified.
 
@@ -54,3 +54,5 @@ Manual verification is still needed for real unlocks, audio output, screenshots,
 ## Upstream attribution
 
 The original BSD-2-Clause license and SnakeSteak copyright remain in [LICENSE](LICENSE). The original project credits C Engineer for collection-log popup tie-ins, Trailblazer audio for playback references, and CoX Special Loot Hider (Karambtwo, Rikten X, Fraac) for chat censoring and delayed screenshots. Our fork retains that attribution. The original Colourful/Neutral art and five sound files have been removed from the distributed resources.
+
+B0aty variant 1 has its leading silence trimmed; its source and licence remain listed in the audio credits.

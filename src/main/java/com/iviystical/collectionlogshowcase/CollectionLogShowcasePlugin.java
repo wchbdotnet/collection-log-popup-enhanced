@@ -293,7 +293,7 @@ public class CollectionLogShowcasePlugin extends Plugin
 	public void onScriptPreFired(ScriptPreFired scriptPreFired)
 	{
 		if (scriptPreFired.getScriptId() != ScriptID.NOTIFICATION_DELAY || spoofedNotificationTitle != null
-			|| !isHeldCoxNotification())
+			|| !(isHeldCoxNotification() || shouldDelayCollectionScreenshot()))
 		{
 			return;
 		}
@@ -387,6 +387,13 @@ public class CollectionLogShowcasePlugin extends Plugin
 			&& CoxLootParser.notificationUnique(client.getVarcStrValue(VarClientID.NOTIFICATION_MAIN)) != null;
 	}
 
+	private boolean shouldDelayCollectionScreenshot()
+	{
+		return config.delayCollectionScreenshot() && config.panelStyle() != PanelStyle.AUDIO_ONLY
+			&& client.getVarbitValue(VarbitID.OPTION_COLLECTION_NEW_ITEM) != COLLECTION_NEW_ITEM_CHAT_ONLY
+			&& COLLECTION_LOG_NOTIFICATION_TITLE.equalsIgnoreCase(client.getVarcStrValue(VarClientID.NOTIFICATION_TITLE));
+	}
+
 	private void restoreNotificationTitle()
 	{
 		if (spoofedNotificationTitle == null)
@@ -445,7 +452,8 @@ public class CollectionLogShowcasePlugin extends Plugin
 	public void onGameTick(GameTick gameTick)
 	{
 		PreviewTier previewTier = config.previewTier();
-		if (previewTier != previousPreviewTier)
+		boolean previewChanged = previewTier != previousPreviewTier;
+		if (previewChanged)
 		{
 			// Dismiss whatever's showing/queued so the next state starts clean. A held preview item
 			// also carries a stale notificationStartMillis, so its hold/fade timer (see
@@ -454,10 +462,8 @@ public class CollectionLogShowcasePlugin extends Plugin
 		}
 		previousPreviewTier = previewTier;
 
-		// Fires once when preview mode is enabled; the overlay then holds the item indefinitely (see
-		// CollectionLogOverlay#advance), so this doesn't re-fire until preview is toggled or
-		// switched. Same pipeline as "::clogtest", driven by config so any user can preview.
-		if (previewTier != PreviewTier.NONE && collectionLogOverlay.isIdle())
+		// Each selection plays once unless the user explicitly enables looping.
+		if (previewTier != PreviewTier.NONE && (previewChanged || config.previewLoop()) && collectionLogOverlay.isIdle())
 		{
 			if (previewTier == PreviewTier.RANDOM)
 			{
@@ -690,7 +696,8 @@ public class CollectionLogShowcasePlugin extends Plugin
 
 		collectionLogOverlay.enqueue(itemName, result.getItemId(), result.getTier(), result.getPrice(), result.isHighAlch(),
 			result.getCompPercent(), killCount, killCountKind, source,
-			kill != null ? kill.getSecondaryCount() : null, dropProbability, ambiguousDropRates, held);
+			kill != null ? kill.getSecondaryCount() : null, dropProbability, ambiguousDropRates, held,
+			!"known".equals(resolvedVia) && config.delayCollectionScreenshot() && config.panelStyle() != PanelStyle.AUDIO_ONLY);
 	}
 
 	@Provides

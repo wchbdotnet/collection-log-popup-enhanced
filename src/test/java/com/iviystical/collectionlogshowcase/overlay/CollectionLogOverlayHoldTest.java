@@ -61,7 +61,6 @@ public class CollectionLogOverlayHoldTest
 		when(config.rightPanelStat()).thenReturn(RightPanelStat.DROP_RATE);
 		when(config.showProgressBar()).thenReturn(true);
 		when(config.bulkUnlockSfx()).thenReturn(false);
-		when(config.colourStatLabel()).thenReturn(Color.WHITE);
 		when(config.colourCaption()).thenReturn(Color.WHITE);
 		when(config.compactTextColour()).thenReturn(Color.WHITE);
 

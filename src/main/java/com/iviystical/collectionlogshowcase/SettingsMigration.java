@@ -11,7 +11,7 @@ final class SettingsMigration
         "previewTier", "rarityBasis", "valueUncommonThreshold", "valueRareThreshold", "valueVeryRareThreshold",
         "leftPanelStat", "rightPanelStat", "bulkUnlockSfx", "showProgressBar", "compactShowOwnership",
         "compactShimmer", "compactTextColour", "overlayDisplaySeconds", "overlayScalePercent",
-        "backgroundOpacity", "foregroundOpacity", "colourCaption", "colourStatLabel",
+        "backgroundOpacity", "foregroundOpacity", "colourCaption",
         "delayCoxPopupUntilChest", "coxChatCensor"
     };
 

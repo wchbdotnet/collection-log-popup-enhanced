@@ -104,12 +104,21 @@ public class CollectionLogOverlay extends Overlay
 		Integer secondaryKillCount, Double dropProbability, List<DropRateResolver.SourceRate> ambiguousDropRates,
 		boolean held)
 	{
+		enqueue(itemName, itemId, tier, price, highAlch, compPercent, killCount, killCountKind,
+			killCountSource, secondaryKillCount, dropProbability, ambiguousDropRates, held, false);
+	}
+
+	public void enqueue(String itemName, int itemId, RarityTier tier, long price, boolean highAlch,
+		Double compPercent, Integer killCount, KillCountKind killCountKind, String killCountSource,
+		Integer secondaryKillCount, Double dropProbability, List<DropRateResolver.SourceRate> ambiguousDropRates,
+		boolean held, boolean screenshotPending)
+	{
 		// The overlay was fully idle right before this item arrived, so it's the first of a fresh
 		// batch - the only one that plays a sound when bulkUnlockSfx is on. A held item can't claim
 		// this: it shows later, so #releaseHeld works it out again at the point it's let through.
 		boolean batchStart = !held && queue.isEmpty() && current == null;
 		queue.addLast(new PendingItem(itemName, itemId, tier, price, highAlch, compPercent, killCount,
-			killCountKind, killCountSource, secondaryKillCount, dropProbability, ambiguousDropRates, batchStart, held, false));
+			killCountKind, killCountSource, secondaryKillCount, dropProbability, ambiguousDropRates, batchStart, held, false, screenshotPending));
 	}
 
 	public void clear()
@@ -195,7 +204,6 @@ public class CollectionLogOverlay extends Overlay
 		float scale = config.overlayScalePercent() / 100f;
 		long fadeStart = FOLD_MILLIS + ICON_POP_MILLIS + config.overlayDisplaySeconds() * 1000L;
 		float exitT = clamp01((elapsed - fadeStart) / (float) Math.max(200, config.fadeOutMillis()));
-		float exit = exitT * exitT * (3 - 2 * exitT);
 		Stat left = resolveStatWithFallback(config.leftPanelStat().toPanelStat(), current);
 		boolean showExtra = left != null && config.leftPanelStat() == LeftPanelStat.KILL_COUNT && current.getKillCount() != null;
 		Stat chance = resolveStat(PanelStat.DROP_RATE, current);
@@ -206,12 +214,14 @@ public class CollectionLogOverlay extends Overlay
 		Font statsFont = FontManager.getRunescapeBoldFont().deriveFont(16f);
 		boolean wrapStats = original.getFontMetrics(statsFont).stringWidth(detail) > 243;
 		int height = 80 + (showExtra ? 18 : 0) + (wrapStats ? 18 : 0);
-		float reveal = smoothReveal((elapsed - 180) / 500f);
+		long animationTime = elapsed <= fadeStart ? elapsed
+			: Math.round((1 - exitT) * (FOLD_MILLIS + ICON_POP_MILLIS));
+		float reveal = smoothReveal((animationTime - 180) / 500f);
 		Graphics2D g = (Graphics2D) original.create();
 		try
 		{
 			g.scale(scale, scale);
-			g.translate(0, -Math.round(6 * exit));
+
 			int openingWidth = 58 + Math.round(262 * reveal);
 			g.clipRect(0, 0, openingWidth, height);
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -220,7 +230,7 @@ public class CollectionLogOverlay extends Overlay
 			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 				RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 			Color accent = tierColor(current.getTier());
-			float alpha = 1 - exit;
+			float alpha = smoothReveal(animationTime / 180f);
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * backgroundOpacity));
 			g.setColor(new Color(24, 24, 23));
 			g.fillRoundRect(0, 0, openingWidth, height, 4, 4);
@@ -232,14 +242,14 @@ public class CollectionLogOverlay extends Overlay
 			g.setColor(new Color(83, 78, 66));
 			g.drawLine(56, 8, 56, height - 9);
 			// A travelling highlight follows the expanding edge and fades before the hold.
-			float glint = 1 - smoothReveal((elapsed - 620) / 260f);
+			float glint = 1 - smoothReveal((animationTime - 620) / 260f);
 			if (glint > 0)
 			{
 				g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity * glint));
 				g.setColor(new Color(255, 238, 185));
 				g.fillRect(openingWidth - 3, 3, 2, height - 6);
 			}
-			float itemReveal = smoothReveal(elapsed / 300f);
+			float itemReveal = smoothReveal(animationTime / 300f);
 			BufferedImage sprite = current.getItemId() >= 0 ? itemManager.getImage(current.getItemId()) : null;
 			if (sprite != null)
 			{
@@ -252,7 +262,7 @@ public class CollectionLogOverlay extends Overlay
 				}
 				finally { item.dispose(); }
 			}
-			float textReveal = smoothReveal((elapsed - 380) / 400f);
+			float textReveal = smoothReveal((animationTime - 380) / 400f);
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity * textReveal));
 			g.translate(0, Math.round(7 * (1 - textReveal)));
 			Font small = FontManager.getRunescapeBoldFont().deriveFont(16f);
@@ -281,7 +291,7 @@ public class CollectionLogOverlay extends Overlay
 			if (showExtra)
 			{
 				String extra = left.getLabel().trim() + " " + String.join(" / ", left.getValueLines());
-				compactText(g, truncate(g, extra, small, 243), 64, wrapStats ? 101 : 83, opaque(config.colourStatLabel()));
+				compactText(g, truncate(g, extra, small, 243), 64, wrapStats ? 101 : 83, opaque(config.compactTextColour()));
 			}
 			if (config.showProgressBar())
 			{
@@ -385,9 +395,11 @@ public class CollectionLogOverlay extends Overlay
 		}
 
 		// Fully open: the fold has finished and the icon has popped in.
-		if (current.isReleased() && now - notificationStartMillis >= FOLD_MILLIS + ICON_POP_MILLIS)
+		if ((current.isReleased() || current.isScreenshotPending())
+			&& now - notificationStartMillis >= (config.delayCollectionScreenshot() ? 1500 : FOLD_MILLIS + ICON_POP_MILLIS))
 		{
 			current.setReleased(false);
+			current.setScreenshotPending(false);
 			if (releasedFullyOpenListener != null)
 			{
 				releasedFullyOpenListener.accept(current.getItemName());
@@ -656,6 +668,8 @@ public class CollectionLogOverlay extends Overlay
 		// Let through by #releaseHeld and not yet reported to releasedFullyOpenListener.
 		@Setter
 		private boolean released;
+		@Setter
+		private boolean screenshotPending;
 	}
 
 	@Value
