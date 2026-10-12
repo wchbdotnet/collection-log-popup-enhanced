@@ -607,90 +607,101 @@ public class CollectionLogOverlay extends Overlay
 	{
 		float scale = config.overlayScalePercent() / 100f;
 		long fadeStart = FOLD_MILLIS + ICON_POP_MILLIS + config.overlayDisplaySeconds() * 1000L;
-		float alpha = config.previewTier() != PreviewTier.NONE || elapsed < fadeStart ? 1f
-			: 1f - clamp01((elapsed - fadeStart) / (float) FADE_MILLIS);
+		float exit = config.previewTier() != PreviewTier.NONE ? 0f
+			: clamp01((elapsed - fadeStart) / (float) FADE_MILLIS);
+		float reveal = smoothReveal(elapsed / 450f);
 		Graphics2D g = (Graphics2D) original.create();
 		try
 		{
 			g.scale(scale, scale);
-			g.translate(0, -6 * (1f - clamp01(elapsed / 180f)));
+			g.translate(0, Math.round(-10 * (1 - reveal) - 12 * exit * exit));
+			g.clipRect(0, 0, Math.round(320 * reveal), 92);
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 				config.textRenderMode() == TextRenderMode.CRISP ? RenderingHints.VALUE_TEXT_ANTIALIAS_OFF : RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			Color accent = tierColor(current.getTier());
+			float alpha = 1 - exit;
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * backgroundOpacity));
-			g.setColor(new Color(32, 30, 27));
-			g.fillRoundRect(0, 0, 320, 110, 4, 4);
+			g.setColor(new Color(24, 24, 23));
+			g.fillRoundRect(0, 0, 320, 92, 6, 6);
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity));
-			g.setColor(new Color(111, 101, 82));
-			g.drawRoundRect(0, 0, 319, 109, 4, 4);
-			g.setColor(new Color(64, 59, 50));
-			g.drawRect(3, 3, 313, 103);
+			g.setColor(new Color(73, 70, 63));
+			g.drawRoundRect(0, 0, 319, 91, 6, 6);
+			// The accent traces the perimeter while the card opens, then settles to its top edge.
+			float trace = clamp01((elapsed - 120) / 650f);
 			g.setColor(accent);
-			g.fillRoundRect(0, 16, 3, 60, 3, 3);
-			g.setColor(new Color(23, 22, 20));
-			g.fillRoundRect(12, 23, 44, 44, 2, 2);
+			int top = Math.round(303 * clamp01(trace * 2));
+			g.drawLine(8, 1, 8 + top, 1);
+			if (elapsed < 950)
+			{
+				g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity * (1 - smoothReveal((elapsed - 700) / 250f))));
+				int side = Math.round(83 * clamp01((trace - .5f) * 4));
+				g.drawLine(318, 4, 318, 4 + side);
+				int bottom = Math.round(303 * clamp01((trace - .75f) * 4));
+				g.drawLine(311, 90, 311 - bottom, 90);
+			}
+			g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity));
+			float itemReveal = smoothReveal((elapsed - 100) / 450f);
 			BufferedImage sprite = current.getItemId() >= 0 ? itemManager.getImage(current.getItemId()) : null;
 			if (sprite != null)
 			{
-				g.drawImage(sprite, 34 - sprite.getWidth() / 2, 45 - sprite.getHeight() / 2, null);
+				Graphics2D item = (Graphics2D) g.create();
+				try
+				{
+					item.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity * itemReveal));
+					item.translate(Math.round(-20 * (1 - itemReveal)), 0);
+					item.drawImage(sprite, 31 - sprite.getWidth() / 2, 44 - sprite.getHeight() / 2, null);
+				}
+				finally { item.dispose(); }
 			}
+			float textReveal = smoothReveal((elapsed - 230) / 400f);
+			g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity * textReveal));
+			g.translate(Math.round(12 * (1 - textReveal)), 0);
 			Font small = FontManager.getRunescapeFont().deriveFont(14f);
 			Font title = FontManager.getRunescapeFont().deriveFont(18f);
 			g.setFont(small);
-			g.setColor(opaque(config.colourCaption()));
-			compactText(g, "Collection log", 68, 18, new Color(255, 176, 64));
+			compactText(g, "Collection log", 60, 20, opaque(config.colourCaption()));
 			String tier = current.getTier().getLabel();
-			g.setColor(accent);
-			compactText(g, tier, 307 - g.getFontMetrics().stringWidth(tier), 18, accent);
-			FittedName name = fitName(g, current.getItemName(), title, 239, 12f);
+			compactText(g, tier, 307 - g.getFontMetrics().stringWidth(tier), 20, accent);
+			FittedName name = fitName(g, current.getItemName(), title, 247, 14f);
 			g.setFont(name.getFont());
-			g.setColor(Color.WHITE);
-			compactText(g, name.getText(), 68, 39, Color.WHITE);
-			drawCompactStat(g, resolveStatWithFallback(config.leftPanelStat().toPanelStat(), current), 68, small);
-			drawCompactStat(g, resolveStat(PanelStat.VALUE, current), 192, small);
+			compactText(g, name.getText(), 60, 41, opaque(config.compactTextColour()));
 			Stat chance = resolveStat(PanelStat.DROP_RATE, current);
+			Stat value = resolveStat(PanelStat.VALUE, current);
+			String rate = chance == null ? "Rate unknown" : (current.getDropProbability() == null ? "Rate range " : "") + String.join(" / ", chance.getValueLines());
+			String price = String.join(" / ", value.getValueLines());
+			String detail = config.rightPanelStat() == RightPanelStat.VALUE
+				? price + "   ·   " + rate : rate + "   ·   " + price;
+			Font detailFont = small;
+			FittedName fitted = fitName(g, detail, detailFont, 247, 12f);
+			g.setFont(fitted.getFont());
+			compactText(g, fitted.getText(), 60, 60, opaque(config.compactTextColour()));
+			Stat left = resolveStatWithFallback(config.leftPanelStat().toPanelStat(), current);
 			g.setFont(small);
-			String chanceText = chance == null ? "Drop chance: Unknown"
-				: (current.getDropProbability() == null ? "Drop chance range: " : "Drop chance: ") + String.join(" / ", chance.getValueLines());
-			FittedName fittedChance = fitName(g, chanceText, small, 239, 12f);
-			g.setFont(fittedChance.getFont());
-			compactText(g, fittedChance.getText(), 68, 94, Color.WHITE);
+			if (left != null && ((config.leftPanelStat() == LeftPanelStat.KILL_COUNT && current.getKillCount() != null)
+				|| config.compactShowOwnership()))
+			{
+				String extra = left.getLabel().trim() + " " + String.join(" / ", left.getValueLines());
+				compactText(g, truncate(g, extra, small, 247), 60, 78, opaque(config.colourStatLabel()));
+			}
 			if (config.showProgressBar())
 			{
 				int total = client.getVarpValue(VarPlayerID.COLLECTION_COUNT_MAX);
 				int obtained = client.getVarpValue(VarPlayerID.COLLECTION_COUNT);
-				g.setColor(new Color(47, 52, 59));
-				g.fillRect(12, 102, 296, 2);
+				g.setColor(new Color(52, 51, 47));
+				g.fillRect(60, 85, 247, 2);
 				g.setColor(accent);
-				g.fillRect(12, 102, total > 0 ? Math.round(296 * clamp01(obtained / (float) total)) : 0, 2);
+				g.fillRect(60, 85, total > 0 ? Math.round(247 * clamp01(obtained / (float) total)) : 0, 2);
 			}
 		}
-		finally
-		{
-			g.dispose();
-		}
-		return new Dimension(panelWidth, Math.round(110 * scale));
+		finally { g.dispose(); }
+		return new Dimension(panelWidth, Math.round(92 * scale));
 	}
 
-	private void drawCompactStat(Graphics2D g, Stat stat, int x, Font font)
+	private static float smoothReveal(float t)
 	{
-		if (stat == null)
-		{
-			return;
-		}
-		g.setFont(font);
-		g.setColor(opaque(config.colourStatLabel()));
-		compactText(g, truncate(g, stat.getLabel().trim(), font, 115), x, 56, new Color(215, 207, 190));
-		g.setColor(stat.getValueColor());
-		int y = 70;
-		for (String line : stat.getValueLines())
-		{
-			FittedName value = fitName(g, line, font, 115, 9f);
-			g.setFont(value.getFont());
-			compactText(g, value.getText(), x, y, Color.WHITE);
-			y += 11;
-		}
+		float p = clamp01(t);
+		return 1 - (1 - p) * (1 - p) * (1 - p);
 	}
 
 	private static void compactText(Graphics2D g, String text, int x, int y, Color color)

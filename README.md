@@ -2,7 +2,7 @@
 
 Experimental visual redesign by **IVIystical**, based on SnakeSteak's Collection Log Popup Enhanced. Upstream code, license and asset credits are retained below.
 
-The default **Compact** style is a 320 x 110 dark card with an inset item sprite, rarity accent, item name, kill count / ownership statistic, value, a dedicated drop chance (or source range / Unknown), and overall collection progress. Existing unlock detection, statistic fallbacks, queue, audio and Chambers of Xeric behavior are retained. Colourful, Neutral and Audio only remain available.
+The default **Compact** style is a 320 x 92 reward banner with a sliding item reveal, drawn rarity border, staggered text motion and upward fade. White shadowed text shows item name, drop rate and value; the Right statistic setting chooses their order. Kill count appears when available, ownership is optional under Compact: show ownership, and collection progress retains its existing toggle. Existing unlock detection, statistic fallbacks, queue, audio and Chambers of Xeric behavior are retained. Colourful, Neutral and Audio only remain available.
 
 For manual testing, enable the plugin and select a tier under Preview popup. Check each tier, long names, missing sprites, statistic options, scaling and Alt-drag positioning. Disable preview afterwards. For real unlocks, check native popup suppression and screenshots; check queued unlocks and the CoX chest delay separately. Do not enable the upstream plugin at the same time.
 

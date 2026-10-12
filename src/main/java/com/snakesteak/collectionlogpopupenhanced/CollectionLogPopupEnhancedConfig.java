@@ -314,6 +314,30 @@ public interface CollectionLogPopupEnhancedConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "compactShowOwnership",
+		name = "Compact: show ownership",
+		description = "Show the ownership statistic when kill count is unavailable, or Completion is selected",
+		position = 10,
+		section = appearanceSection
+	)
+	default boolean compactShowOwnership()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "compactTextColour",
+		name = "Compact: item and values",
+		description = "High contrast text colour for the compact reward banner",
+		position = 11,
+		section = appearanceSection
+	)
+	default Color compactTextColour()
+	{
+		return Color.WHITE;
+	}
+
+	@ConfigItem(
 		keyName = "overlayDisplaySeconds",
 		name = "Overlay display duration (seconds)",
 		description = "How long each new collection log item stays on screen",
