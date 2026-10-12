@@ -57,6 +57,6 @@ The original BSD-2-Clause license and SnakeSteak copyright remain in [LICENSE](L
 
 B0aty variant 1 has its leading silence trimmed; its source and licence remain listed in the audio credits.
 
-**Show kill/activity count** adds a row when a matching count was observed in game chat (including supported boss kills, clue completions and activity counts). Settings previews use simulated counts and activity labels to test the layout; these are illustrative, not your account statistics. Real unlocks use observed game data and do not fetch historical counts. Ownership percentage remains controlled separately by **Show ownership**.
+**Show kill/activity count** (off by default) adds a row when a matching count was observed in game chat (including supported boss kills, clue completions and activity counts). Settings previews use simulated counts and activity labels to test the layout; these are illustrative, not your account statistics. Real unlocks use observed game data and do not fetch historical counts. Ownership percentage remains controlled separately by **Show ownership**.
 
-**Show glow** (on by default) adds a soft rarity-coloured border glow that follows the drawer animation.
+**Show glow** (off by default) adds a soft rarity-coloured border glow that follows the drawer animation.

@@ -147,7 +147,7 @@ public interface CollectionLogShowcaseConfig extends Config
 	)
 	default boolean showKillCount()
 	{
-		return true;
+		return false;
 	}
 
 	@ConfigItem(
@@ -227,7 +227,7 @@ public interface CollectionLogShowcaseConfig extends Config
 	}
 
 	@ConfigItem(keyName = "showGlow", name = "Show glow", description = "Soft rarity-coloured glow around the drawer border", position = 12, section = appearanceSection)
-	default boolean showGlow() { return true; }
+	default boolean showGlow() { return false; }
 
 	@ConfigItem(
 		keyName = "compactTextColour",
