@@ -619,49 +619,58 @@ public class CollectionLogOverlay extends Overlay
 				config.textRenderMode() == TextRenderMode.CRISP ? RenderingHints.VALUE_TEXT_ANTIALIAS_OFF : RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			Color accent = tierColor(current.getTier());
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * backgroundOpacity));
-			g.setColor(new Color(20, 23, 27));
-			g.fillRoundRect(0, 0, 320, 94, 12, 12);
+			g.setColor(new Color(32, 30, 27));
+			g.fillRoundRect(0, 0, 320, 110, 4, 4);
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity));
-			g.setColor(new Color(63, 68, 75));
-			g.drawRoundRect(0, 0, 319, 93, 12, 12);
+			g.setColor(new Color(111, 101, 82));
+			g.drawRoundRect(0, 0, 319, 109, 4, 4);
+			g.setColor(new Color(64, 59, 50));
+			g.drawRect(3, 3, 313, 103);
 			g.setColor(accent);
 			g.fillRoundRect(0, 16, 3, 60, 3, 3);
-			g.setColor(new Color(34, 38, 44));
-			g.fillRoundRect(12, 23, 44, 44, 8, 8);
+			g.setColor(new Color(23, 22, 20));
+			g.fillRoundRect(12, 23, 44, 44, 2, 2);
 			BufferedImage sprite = current.getItemId() >= 0 ? itemManager.getImage(current.getItemId()) : null;
 			if (sprite != null)
 			{
 				g.drawImage(sprite, 34 - sprite.getWidth() / 2, 45 - sprite.getHeight() / 2, null);
 			}
-			Font small = FontManager.getRunescapeFont().deriveFont(12f);
-			Font title = FontManager.getRunescapeBoldFont().deriveFont(18f);
+			Font small = FontManager.getRunescapeFont().deriveFont(14f);
+			Font title = FontManager.getRunescapeFont().deriveFont(18f);
 			g.setFont(small);
 			g.setColor(opaque(config.colourCaption()));
-			g.drawString("Collection log", 68, 18);
+			compactText(g, "Collection log", 68, 18, new Color(255, 176, 64));
 			String tier = current.getTier().getLabel();
 			g.setColor(accent);
-			g.drawString(tier, 307 - g.getFontMetrics().stringWidth(tier), 18);
+			compactText(g, tier, 307 - g.getFontMetrics().stringWidth(tier), 18, accent);
 			FittedName name = fitName(g, current.getItemName(), title, 239, 12f);
 			g.setFont(name.getFont());
-			g.setColor(accent);
-			g.drawString(name.getText(), 68, 39);
+			g.setColor(Color.WHITE);
+			compactText(g, name.getText(), 68, 39, Color.WHITE);
 			drawCompactStat(g, resolveStatWithFallback(config.leftPanelStat().toPanelStat(), current), 68, small);
-			drawCompactStat(g, resolveStatWithFallback(config.rightPanelStat().toPanelStat(), current), 192, small);
+			drawCompactStat(g, resolveStat(PanelStat.VALUE, current), 192, small);
+			Stat chance = resolveStat(PanelStat.DROP_RATE, current);
+			g.setFont(small);
+			String chanceText = chance == null ? "Drop chance: Unknown"
+				: (current.getDropProbability() == null ? "Drop chance range: " : "Drop chance: ") + String.join(" / ", chance.getValueLines());
+			FittedName fittedChance = fitName(g, chanceText, small, 239, 12f);
+			g.setFont(fittedChance.getFont());
+			compactText(g, fittedChance.getText(), 68, 94, Color.WHITE);
 			if (config.showProgressBar())
 			{
 				int total = client.getVarpValue(VarPlayerID.COLLECTION_COUNT_MAX);
 				int obtained = client.getVarpValue(VarPlayerID.COLLECTION_COUNT);
 				g.setColor(new Color(47, 52, 59));
-				g.fillRect(12, 85, 296, 2);
+				g.fillRect(12, 102, 296, 2);
 				g.setColor(accent);
-				g.fillRect(12, 85, total > 0 ? Math.round(296 * clamp01(obtained / (float) total)) : 0, 2);
+				g.fillRect(12, 102, total > 0 ? Math.round(296 * clamp01(obtained / (float) total)) : 0, 2);
 			}
 		}
 		finally
 		{
 			g.dispose();
 		}
-		return new Dimension(panelWidth, Math.round(94 * scale));
+		return new Dimension(panelWidth, Math.round(110 * scale));
 	}
 
 	private void drawCompactStat(Graphics2D g, Stat stat, int x, Font font)
@@ -672,18 +681,25 @@ public class CollectionLogOverlay extends Overlay
 		}
 		g.setFont(font);
 		g.setColor(opaque(config.colourStatLabel()));
-		g.drawString(truncate(g, stat.getLabel().trim(), font, 115), x, 56);
+		compactText(g, truncate(g, stat.getLabel().trim(), font, 115), x, 56, new Color(215, 207, 190));
 		g.setColor(stat.getValueColor());
 		int y = 70;
 		for (String line : stat.getValueLines())
 		{
 			FittedName value = fitName(g, line, font, 115, 9f);
 			g.setFont(value.getFont());
-			g.drawString(value.getText(), x, y);
+			compactText(g, value.getText(), x, y, Color.WHITE);
 			y += 11;
 		}
 	}
 
+	private static void compactText(Graphics2D g, String text, int x, int y, Color color)
+	{
+		g.setColor(Color.BLACK);
+		g.drawString(text, x + 1, y + 1);
+		g.setColor(color);
+		g.drawString(text, x, y);
+	}
 	private void drawItemSprite(Graphics2D graphics, BufferedImage sprite)
 	{
 		float spriteScale = iconTargetSize / (float) Math.max(sprite.getWidth(), sprite.getHeight());

@@ -80,10 +80,10 @@ public class CompactOverlayTest
 		try
 		{
 			// First frame starts the notification's clock; the icon is still folded shut here.
-			org.junit.Assert.assertEquals(new Dimension(320, 94), overlay.render(graphics));
+			org.junit.Assert.assertEquals(new Dimension(320, 110), overlay.render(graphics));
 			Thread.sleep(PAST_FOLD_MILLIS);
 			// Second frame lands inside the icon's pop window, which is what draws the sprite.
-			org.junit.Assert.assertEquals(new Dimension(320, 94), overlay.render(graphics));
+			org.junit.Assert.assertEquals(new Dimension(320, 110), overlay.render(graphics));
 		}
 		finally
 		{
