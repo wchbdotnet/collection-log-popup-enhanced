@@ -13,7 +13,7 @@ repositories {
 }
 
 def runeLiteVersion = 'latest.release'
-def pluginMainClass = 'com.snakesteak.collectionlogpopupenhanced.CollectionLogPopupEnhancedPluginTest'
+def pluginMainClass = 'com.iviystical.collectionlogshowcase.CollectionLogShowcasePluginTest'
 
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
@@ -27,7 +27,7 @@ dependencies {
 	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
 }
 
-group = 'com.snakesteak'
+group = 'com.iviystical'
 
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'

@@ -1,166 +1,56 @@
-# Compact popup design fork
+# Collection Log Showcase
 
-Experimental visual redesign by **IVIystical**, based on SnakeSteak's Collection Log Popup Enhanced. Upstream code, license and asset credits are retained below.
+**A standalone fork of [Collection Log Popup Enhanced](https://github.com/TimHeessels/collection-log-popup-enhanced) by SnakeSteak, developed by IVIystical.**
 
-The default **Compact** style is a 320 x 80 reward banner (98 high when the optional extra statistic is shown) with an item seal that opens into a drawer, a travelling edge highlight, and a sliding fade out. Bold RuneScape text uses the original overlay rendering hints and is rasterized at its final size. White shadowed text shows item name, drop rate and value; the Right statistic setting chooses their order. Kill count appears when available, ownership is shown by default and can be toggled under Compact: show ownership, zero GP values are hidden, long stat lines wrap, and collection progress retains its existing toggle. Compact: glass shimmer enables a single soft highlight sweep during the reveal. Existing unlock detection, statistic fallbacks, queue, audio and Chambers of Xeric behavior are retained. Colourful, Neutral and Audio only remain available.
+This project keeps the original plugin's collection-log detection, rarity calculation, local datasets, kill-count tracking, unlock queue, bulk sound handling, native-popup screenshot integration and Chambers of Xeric censor/delay features. It replaces the original visual skins and tier-specific audio system with an animated compact banner and a selectable collection-log voice.
 
-For manual testing, enable the plugin and select a tier under Preview popup. Check each tier, long names, missing sprites, statistic options, scaling and Alt-drag positioning. Disable preview afterwards. For real unlocks, check native popup suppression and screenshots; check queued unlocks and the CoX chest delay separately. Do not enable the upstream plugin at the same time.
+## Our popup
 
-Development follows RuneLite Plugin Hub guidelines and Java 11 compatibility. This experimental fork has not been submitted to the Hub or verified in-game.
+- A compact item compartment that opens into a reward banner, with a moving edge highlight and optional glass shimmer.
+- Bold Pixel text, rendered at its final size. No text-rendering selector.
+- Item name, rarity, drop rate or rate range, percentage of players who own the item, and positive GP values. Zero GP / high-alch entries are hidden.
+- Content fits the height; longer stat lines wrap. Additional statistic chooses kill count or completion; Primary statistic chooses value or rate ordering.
+- Progress bar, scale, background and foreground opacity, text colours, ownership display and shimmer remain configurable.
+- Alt-drag positioning and Preview popup remain available.
 
----
-# Collection Log Popup Enhanced
-Displays a popup and (optional) sound effect based on rarity on new collection logs.
+Only **Showcase** and **Audio only (native popup)** modes are offered. Audio only leaves the normal game popup visible and plays the selected voice. CoX censoring/delay still takes precedence while loot is hidden.
 
-- [Setup](#setup)
-- [Visuals](#visuals)
-  - [Colourful visuals](#colourful-visuals)
-  - [Neutral visuals](#neutral-visuals)
-  - [Audio only](#audio-only)
-- [Testing](#testing)
-- [Rarity tiers](#rarity-tiers)
-- [Appearance](#appearance)
-  - [Scaling](#scaling)
-  - [Colors](#colors)
-- [Statistics](#statistics)
-- [Audio](#audio)
-  - [Volume](#volume)
-  - [Custom sounds](#custom-sounds)
-- [Chambers of Xerics - Delay](#chambers-of-xerics---delay)
-- [Native popups and screenshots](#native-popups-and-screenshots)
-- [Thanks to:](#thanks-to)
+## Audio and source credits
 
-# Setup
-In settings menu, enable:
-1. 'Collection log - New addition notification'
-2. 'Collection log - New addition popup'
-![alt text](clogSettings.png)
+**We have also pulled the bundled audio files from various other RuneLite plugins. These recordings are not original recordings made for this project.**
 
-At the bottom of the page is an explaination of why the native popup has to be active even though we use our own popup.
+| Voice | Source plugin and maintainer | Clip |
+| --- | --- | --- |
+| C Engineer (default) | [C Engineer: Completed — m0bilebtw](https://github.com/m0bilebtw/c-engineer-completed) | `ColLogSlotCompleted_r1.wav` |
+| B0aty — variant 1 | [Boaty Hype Man — Devdeve](https://github.com/Devdeve/boatyHypeMan-plugin) | `collog1.wav` |
+| B0aty — variant 2 | [Boaty Hype Man — Devdeve](https://github.com/Devdeve/boatyHypeMan-plugin) | `collog2.wav` |
+| Tedious | [Tedious Collection Log — evaan](https://github.com/evaan/tedious-collection-log) | `the_collection_log.wav` |
+| Odablock | [Odablock — DapperMickie](https://github.com/DapperMickie/odablock-sounds) | `collectionlog/ColLogSlotCompleted_r1.wav` |
 
-# Visuals
-You can choose between two visual styles, or audio only.
+The exact source revisions are recorded in [audio-sources.txt](src/main/resources/licenses/audio-sources.txt). The source repositories' BSD-2-Clause license notices are included in [licenses](src/main/resources/licenses) and bundled in the plugin JAR. Voice names identify the recordings and do not imply endorsement of this fork.
 
-![alt text](image-6.png)
+Audio has one **Play collection log audio** toggle and one **Volume** for every tier and pets. **Bulk unlock SFX** preserves the original behaviour: one sound for an unlock batch when enabled. Select a voice in the separate **Audio files** section. All bundled clips are local WAV resources; the plugin does not download them at runtime. None of Collection Log Popup Enhanced's original five sound effects remain bundled.
 
-## Colourful visuals
-![ColourfulPanels.png](ColourfulPanels.png)
+For your own recording, select **Custom WAV** and place a valid WAV inside `.runelite/collection-log-showcase/sounds/`. Set **Custom WAV filename** to its filename, for example `custom.wav`. Selecting Custom and triggering a preview creates the folder if necessary. An absent or invalid custom file does not silently substitute another voice.
 
-## Neutral visuals
-![NeutralPanels](NeutralPanels.png)
+## Setup and previews
 
-## Audio only
-Plays a unique sound per tier, but shows the build-in collection log popup (or only audi if you disable popup in osrs settings)
+Enable the game's **Collection log — New addition notification** and **New addition popup** settings. The native popup must remain enabled for RuneLite's screenshot timing; Showcase hides only its paint while replacing it.
 
-# Testing
-To test the popup without having to unlock a new collection log, select any tier (or random) in the 'preview popup' dropdown. This will show the popup as if you got an item from that tier.
+Select a rarity in **Preview popup** to inspect the banner and hear the chosen voice. Turn preview off and select a tier again to replay the animation and audio. Disable preview afterwards.
 
-(Don't forget to turn it off again when you're done testing)
+Showcase conflicts with Collection Log Popup Enhanced so RuneLite does not run both popup replacements together. It has its own Java identity and `collection-log-showcase` settings group. Shared preferences are copied once from the earlier group when no Showcase value exists. Old Colourful/Neutral modes become Showcase; Audio only remains Audio only. The old common sound toggle and volume initialise the unified audio controls; old per-tier differences are intentionally retired. The original settings are not modified.
 
-![alt text](testing_settings.png)
+## Chambers of Xeric
 
-# Rarity tiers
-The popup has 5 different rarity tiers:
-* Common
-* Uncommon
-* Rare
-* Very rare
-* Pet
+The upstream CoX code and defaults are retained: **Delay CoX popups until chest** defaults off, and **Chatbox censor** defaults Off. Enable them if you want loot hidden until the reward chest, storage or bank is opened. Delayed collection-log screenshots remain tied to release of the popup. Avoid combining the censor with CoX Special Loot Hider.
 
-Each has a different popup style and color scheme. You can customize rarity tier cutoffs based on:
-* value
-* wiki% (https://oldschool.runescape.wiki/w/Collection_log/Table)
-* combination of both
+## Development and validation
 
-![alt text](raritytiers_settings.png)
+Java 11-compatible source. Author metadata: **IVIystical**. Follow current [RuneLite Plugin Hub guidelines](https://github.com/runelite/plugin-hub). Run `gradlew test` for automated checks and `gradlew run` for the development client. For Jagex accounts, use RuneLite's [development-client login guide](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
 
-# Appearance
+Manual verification is still needed for real unlocks, audio output, screenshots, bulk unlocks and CoX chest release. Development previews and automated tests do not establish those behaviours in-game. This fork has not been submitted to the Plugin Hub.
 
-## Moving the popup
-While the preview is showing, hold Alt and drag the popup wherever you like, or onto one of the snap points. Hold Alt and right-click it to put it back at the top center.
-![alt text](image-9.png)
+## Upstream attribution
 
-## Scaling
-You can also scale the popup and set text-rendering to what looks good to you. Crisp text looks best at higher scale, smooth at lower.
-
-The native popup is hidden for any clog unlocked so only the enhanced panel shows. (Combat achievements will still show with the default popup and are not hidden).
-
-The center bar depicts your progress towards collecting all collection log items.
-
-![alt text](appearance_settings.png)
-
-## Colors
-You can customize the panel's colours here (Active only on colourful mode).
-
-![alt text](image-7.png)
-
-Text colours can be customized here. Applied to both colourful and neutral mode.
-
-![alt text](image-8.png)
-
-
-# Statistics
-At the bottom left and right of the panel statistics are displayed (configurable in setting). These values can be:
-* Kill count - KC at which you got the item - if no KC is available it will show completion instead
-* Completion - based on how many other players have this item (https://oldschool.runescape.wiki/w/Collection_log/Table)
-* Droprate - Shows drop rate of the item if available. If no droprate available it will show value instead.
-* Value - G.E price (High alch when the item has no G.E price).
-
-![alt text](statistics_settings.png)
-
-# Audio
-
-## Volume
-You can set volume or disable audio for each tier.<br>
-When multiple collections are logged at the same time audio plays for each popup. Select bulk unlock SFX to play only the first audio effect.
-
-![alt text](audio_settings.png)
-
-## Custom sounds
-Want to use your own sound effects instead? Place any or all '.wav' files into '.runelite/collection-log-popup-enhanced/sounds/', using these exact filenames:
-- `common.wav`
-- `uncommon.wav`
-- `rare.wav`
-- `very_rare.wav`
-- `pet.wav`
-
-And it will use your sound instead! (See 'Testing' on how to test if your audio works)
-(Note: if it doesn't play a sound and the spelling is correct, your audio file is not supported, try another.)
-
-# Chambers of Xerics - Delay
-Inspired by CoX sensor plugin, you can toggle these settings to wait for opening the chest before:
-* Showing the enhanced popup
-* Censor any loot in chat with ???
-
-It also waits with taking a screenshot until you opened the chest.
-
-Do not use the [CoX Censor plugin](https://runelite.net/plugin-hub/show/cox-special-loot-hider) with these settings on.
-
-![alt text](CoX-Sensor.png)
-
-# Native popups and screenshots
-The native popup (the default one in the official client) has to be active in runescape settings, as the build in screenshot tool (taking a screenshot upon getting a new collection log) actually waits for the panel to be fully open, but only when this toggle is active. 
-Even though the toggle has to be active, the native popup is hidden by the plugin so only the enhanced popup is shown.
-In 'Audio only' mode the native popup is left untouched, so screenshots capture it as normal.
-
-# Thanks to:
-C engineer plugin for collection log slot popup tie ins.
-Trailblazer audio effect for references to scripts on playing audio
-CoX special loot hider (Karambtwo, Rikten X, Fraac) for the CoX chat censoring and delayed screenshot approach
-
-## Code inspirations
-The popup backgrounds are from:
-https://bdragon1727.itch.io/custom-border-and-panels-menu-all-part
-and customized by me in photoshop.
-
-## Sound effects
-
-Common: https://freesound.org/people/Kenneth_Cooney/sounds/609336/
-
-Uncommon: https://freesound.org/people/PearceWilsonKing/sounds/238855/
-
-Rare: https://freesound.org/people/jobro/sounds/198808/
-
-Very rare: https://freesound.org/people/_MC5_/sounds/524848/
-
-Pet: https://freesound.org/people/Tuudurt/sounds/275104/
+The original BSD-2-Clause license and SnakeSteak copyright remain in [LICENSE](LICENSE). The original project credits C Engineer for collection-log popup tie-ins, Trailblazer audio for playback references, and CoX Special Loot Hider (Karambtwo, Rikten X, Fraac) for chat censoring and delayed screenshots. Our fork retains that attribution. The original Colourful/Neutral art and five sound files have been removed from the distributed resources.

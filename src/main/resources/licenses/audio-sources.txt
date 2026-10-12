@@ -1,0 +1,5 @@
+c-engineer.wav : https://raw.githubusercontent.com/m0bilebtw/c-engineer-completed/e46d64c3eeac34b0fe3bcfea841b7d78b08009d7/ColLogSlotCompleted_r1.wav
+tedious.wav : https://raw.githubusercontent.com/evaan/tedious-collection-log/6414f9f629ea3241986064a855b26e32251e2207/the_collection_log.wav
+boaty-1.wav : https://raw.githubusercontent.com/Devdeve/boatyHypeMan-plugin/1472c72a04436464f7a60e282d4477f47609c926/collog1.wav
+boaty-2.wav : https://raw.githubusercontent.com/Devdeve/boatyHypeMan-plugin/1472c72a04436464f7a60e282d4477f47609c926/collog2.wav
+odablock.wav : https://raw.githubusercontent.com/DapperMickie/odablock-sounds/36616a2987ed86e38d99c360e376930cc3eafe7e/collectionlog/ColLogSlotCompleted_r1.wav

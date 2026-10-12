@@ -12,4 +12,5 @@ AGENTS.md
 CLAUDE.md
 
 # Real dataset snapshots for local test runs only
-src/test/resources/local-only//dev-client*.log
+src/test/resources/local-only/
+/dev-client*.log
