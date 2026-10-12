@@ -35,7 +35,8 @@ public class CompactOverlayTest
 	// null sprite goes unnoticed before then - every assertion here has to render past it.
 	private static final long PAST_FOLD_MILLIS = 700;
 
-	private ItemManager itemManager;
+	private int expectedHeight = 80;
+    private ItemManager itemManager;
 	private CollectionLogOverlay overlay;
 
 	@Before
@@ -81,10 +82,10 @@ public class CompactOverlayTest
 		try
 		{
 			// First frame starts the notification's clock; the icon is still folded shut here.
-			org.junit.Assert.assertEquals(new Dimension(320, 92), overlay.render(graphics));
+			org.junit.Assert.assertEquals(new Dimension(320, expectedHeight), overlay.render(graphics));
 			Thread.sleep(PAST_FOLD_MILLIS);
 			// Second frame lands inside the icon's pop window, which is what draws the sprite.
-			org.junit.Assert.assertEquals(new Dimension(320, 92), overlay.render(graphics));
+			org.junit.Assert.assertEquals(new Dimension(320, expectedHeight), overlay.render(graphics));
 		}
 		finally
 		{
@@ -107,7 +108,8 @@ public class CompactOverlayTest
 	@Test
 	public void rendersWhenTheItemHasASprite() throws InterruptedException
 	{
-		AsyncBufferedImage sprite = new AsyncBufferedImage(null, 36, 32, BufferedImage.TYPE_INT_ARGB);
+		expectedHeight = 98;
+        AsyncBufferedImage sprite = new AsyncBufferedImage(null, 36, 32, BufferedImage.TYPE_INT_ARGB);
 		// Item sprites are a fixed 36x32; the icon path scales from these, so a 0x0 mock would
 		// divide by zero and mask what this test is actually checking.
 		

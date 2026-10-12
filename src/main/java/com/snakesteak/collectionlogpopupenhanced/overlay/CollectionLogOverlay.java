@@ -609,39 +609,46 @@ public class CollectionLogOverlay extends Overlay
 		long fadeStart = FOLD_MILLIS + ICON_POP_MILLIS + config.overlayDisplaySeconds() * 1000L;
 		float exit = config.previewTier() != PreviewTier.NONE ? 0f
 			: clamp01((elapsed - fadeStart) / (float) FADE_MILLIS);
-		float reveal = smoothReveal(elapsed / 450f);
+		Stat left = resolveStatWithFallback(config.leftPanelStat().toPanelStat(), current);
+		boolean showExtra = left != null && ((config.leftPanelStat() == LeftPanelStat.KILL_COUNT && current.getKillCount() != null)
+			|| config.compactShowOwnership());
+		int height = showExtra ? 98 : 80;
+		float reveal = smoothReveal((elapsed - 180) / 500f);
 		Graphics2D g = (Graphics2D) original.create();
 		try
 		{
 			g.scale(scale, scale);
-			g.translate(0, Math.round(-10 * (1 - reveal) - 12 * exit * exit));
-			g.clipRect(0, 0, Math.round(320 * reveal), 92);
+			g.translate(Math.round(24 * exit * exit), 0);
+			int openingWidth = 58 + Math.round(262 * reveal);
+			g.clipRect(0, 0, openingWidth, height);
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, config.textRenderMode() == TextRenderMode.CRISP
+				? RenderingHints.VALUE_FRACTIONALMETRICS_OFF : RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+			g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, config.textRenderMode() == TextRenderMode.CRISP
+				? RenderingHints.VALUE_STROKE_DEFAULT : RenderingHints.VALUE_STROKE_PURE);
 			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 				config.textRenderMode() == TextRenderMode.CRISP ? RenderingHints.VALUE_TEXT_ANTIALIAS_OFF : RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			Color accent = tierColor(current.getTier());
 			float alpha = 1 - exit;
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * backgroundOpacity));
 			g.setColor(new Color(24, 24, 23));
-			g.fillRoundRect(0, 0, 320, 92, 6, 6);
+			g.fillRoundRect(0, 0, openingWidth, height, 4, 4);
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity));
 			g.setColor(new Color(73, 70, 63));
-			g.drawRoundRect(0, 0, 319, 91, 6, 6);
-			// The accent traces the perimeter while the card opens, then settles to its top edge.
-			float trace = clamp01((elapsed - 120) / 650f);
+			g.drawRoundRect(0, 0, openingWidth - 1, height - 1, 4, 4);
 			g.setColor(accent);
-			int top = Math.round(303 * clamp01(trace * 2));
-			g.drawLine(8, 1, 8 + top, 1);
-			if (elapsed < 950)
+			g.drawLine(1, 1, openingWidth - 2, 1);
+			g.setColor(new Color(83, 78, 66));
+			g.drawLine(56, 8, 56, height - 9);
+			// A travelling highlight follows the expanding edge and fades before the hold.
+			float glint = 1 - smoothReveal((elapsed - 620) / 260f);
+			if (glint > 0)
 			{
-				g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity * (1 - smoothReveal((elapsed - 700) / 250f))));
-				int side = Math.round(83 * clamp01((trace - .5f) * 4));
-				g.drawLine(318, 4, 318, 4 + side);
-				int bottom = Math.round(303 * clamp01((trace - .75f) * 4));
-				g.drawLine(311, 90, 311 - bottom, 90);
+				g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity * glint));
+				g.setColor(new Color(255, 238, 185));
+				g.fillRect(openingWidth - 3, 3, 2, height - 6);
 			}
-			g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity));
-			float itemReveal = smoothReveal((elapsed - 100) / 450f);
+			float itemReveal = smoothReveal(elapsed / 300f);
 			BufferedImage sprite = current.getItemId() >= 0 ? itemManager.getImage(current.getItemId()) : null;
 			if (sprite != null)
 			{
@@ -649,23 +656,23 @@ public class CollectionLogOverlay extends Overlay
 				try
 				{
 					item.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity * itemReveal));
-					item.translate(Math.round(-20 * (1 - itemReveal)), 0);
-					item.drawImage(sprite, 31 - sprite.getWidth() / 2, 44 - sprite.getHeight() / 2, null);
+					item.translate(0, Math.round(-10 * (1 - itemReveal)));
+					item.drawImage(sprite, 31 - sprite.getWidth() / 2, height / 2 - sprite.getHeight() / 2, null);
 				}
 				finally { item.dispose(); }
 			}
-			float textReveal = smoothReveal((elapsed - 230) / 400f);
+			float textReveal = smoothReveal((elapsed - 380) / 400f);
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * foregroundOpacity * textReveal));
-			g.translate(Math.round(12 * (1 - textReveal)), 0);
-			Font small = FontManager.getRunescapeFont().deriveFont(14f);
-			Font title = FontManager.getRunescapeFont().deriveFont(18f);
+			g.translate(0, Math.round(7 * (1 - textReveal)));
+			Font small = FontManager.getRunescapeBoldFont().deriveFont(16f);
+			Font title = FontManager.getRunescapeBoldFont().deriveFont(22f);
 			g.setFont(small);
-			compactText(g, "Collection log", 60, 20, opaque(config.colourCaption()));
+			compactText(g, "Collection log", 64, 20, opaque(config.colourCaption()));
 			String tier = current.getTier().getLabel();
 			compactText(g, tier, 307 - g.getFontMetrics().stringWidth(tier), 20, accent);
-			FittedName name = fitName(g, current.getItemName(), title, 247, 14f);
+			FittedName name = fitName(g, current.getItemName(), title, 243, 16f);
 			g.setFont(name.getFont());
-			compactText(g, name.getText(), 60, 41, opaque(config.compactTextColour()));
+			compactText(g, name.getText(), 64, 44, opaque(config.compactTextColour()));
 			Stat chance = resolveStat(PanelStat.DROP_RATE, current);
 			Stat value = resolveStat(PanelStat.VALUE, current);
 			String rate = chance == null ? "Rate unknown" : (current.getDropProbability() == null ? "Rate range " : "") + String.join(" / ", chance.getValueLines());
@@ -673,29 +680,28 @@ public class CollectionLogOverlay extends Overlay
 			String detail = config.rightPanelStat() == RightPanelStat.VALUE
 				? price + "   ·   " + rate : rate + "   ·   " + price;
 			Font detailFont = small;
-			FittedName fitted = fitName(g, detail, detailFont, 247, 12f);
+			FittedName fitted = fitName(g, detail, detailFont, 243, 14f);
 			g.setFont(fitted.getFont());
-			compactText(g, fitted.getText(), 60, 60, opaque(config.compactTextColour()));
-			Stat left = resolveStatWithFallback(config.leftPanelStat().toPanelStat(), current);
+			compactText(g, fitted.getText(), 64, 65, opaque(config.compactTextColour()));
+
 			g.setFont(small);
-			if (left != null && ((config.leftPanelStat() == LeftPanelStat.KILL_COUNT && current.getKillCount() != null)
-				|| config.compactShowOwnership()))
+			if (showExtra)
 			{
 				String extra = left.getLabel().trim() + " " + String.join(" / ", left.getValueLines());
-				compactText(g, truncate(g, extra, small, 247), 60, 78, opaque(config.colourStatLabel()));
+				compactText(g, truncate(g, extra, small, 243), 64, 83, opaque(config.colourStatLabel()));
 			}
 			if (config.showProgressBar())
 			{
 				int total = client.getVarpValue(VarPlayerID.COLLECTION_COUNT_MAX);
 				int obtained = client.getVarpValue(VarPlayerID.COLLECTION_COUNT);
 				g.setColor(new Color(52, 51, 47));
-				g.fillRect(60, 85, 247, 2);
+				g.fillRect(64, height - 6, 243, 2);
 				g.setColor(accent);
-				g.fillRect(60, 85, total > 0 ? Math.round(247 * clamp01(obtained / (float) total)) : 0, 2);
+				g.fillRect(64, height - 6, total > 0 ? Math.round(243 * clamp01(obtained / (float) total)) : 0, 2);
 			}
 		}
 		finally { g.dispose(); }
-		return new Dimension(panelWidth, Math.round(92 * scale));
+		return new Dimension(panelWidth, Math.round(height * scale));
 	}
 
 	private static float smoothReveal(float t)
@@ -704,13 +710,26 @@ public class CollectionLogOverlay extends Overlay
 		return 1 - (1 - p) * (1 - p) * (1 - p);
 	}
 
-	private static void compactText(Graphics2D g, String text, int x, int y, Color color)
+	private void compactText(Graphics2D g, String text, int x, int y, Color color)
 	{
-		g.setColor(Color.BLACK);
-		g.drawString(text, x + 1, y + 1);
-		g.setColor(color);
-		g.drawString(text, x, y);
+		// Rasterize at the final font size, as the original overlay does, rather than
+		// transforming small glyphs through the banner's layout scaling.
+		Graphics2D textGraphics = (Graphics2D) g.create();
+		try
+		{
+			float scale = config.overlayScalePercent() / 100f;
+			textGraphics.scale(1 / scale, 1 / scale);
+			textGraphics.setFont(g.getFont().deriveFont(g.getFont().getSize2D() * scale));
+			int px = Math.round(x * scale);
+			int py = Math.round(y * scale);
+			textGraphics.setColor(Color.BLACK);
+			textGraphics.drawString(text, px + 1, py + 1);
+			textGraphics.setColor(color);
+			textGraphics.drawString(text, px, py);
+		}
+		finally { textGraphics.dispose(); }
 	}
+
 	private void drawItemSprite(Graphics2D graphics, BufferedImage sprite)
 	{
 		float spriteScale = iconTargetSize / (float) Math.max(sprite.getWidth(), sprite.getHeight());
